@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Combat.Component.Ship;
 using Combat.Unit;
+using UnityEngine;
 
 namespace Combat.Ai
 {
@@ -14,11 +15,14 @@ namespace Combat.Ai
         }
 
         public bool IsAlive { get { return _ship.IsActive(); } }
+        public bool ControllerChangeToAi { get { return _ship.ControllerChangeToAi(); } }
+        public bool ControllerChangeToPlayer { get { return false; } }
 
         public void Update(float deltaTime)
         {
             var controls = _ship.Controls;
             var currentRotation = _ship.Body.Rotation;
+            var shipPosition = _ship.Body.Position;
 
             if (_keyboard.Throttle)
             {
@@ -29,6 +33,17 @@ namespace Combat.Ai
             {
                 _throttle = false;
                 controls.Throttle = 0.0f;
+            }
+
+            if (_keyboard.Back)
+            {
+                _back = true;
+                controls.BackwardThrottle = 1.0f;
+            }
+            else if (_back)
+            {
+                _back = false;
+                controls.BackwardThrottle = 0.0f;
             }
 
             var dir = new UnityEngine.Vector2(_keyboard.JoystickX, _keyboard.JoystickY);
@@ -48,22 +63,34 @@ namespace Combat.Ai
             if (_keyboard.Left)
             {
                 _left = true;
-                controls.Course = currentRotation + 175;
+                if(_keyboard.HorizontalMove)
+                {
+                    controls.HorizontalThrottle = -1;
+                }
+                else
+                    controls.Course = currentRotation + 175;
             }
             else if (_left)
             {
                 _left = false;
+                controls.HorizontalThrottle = 0;
                 controls.Course = null;
             }
 
             if (_keyboard.Right)
             {
                 _right = true;
-                controls.Course = currentRotation - 175;
+                if (_keyboard.HorizontalMove)
+                {
+                    controls.HorizontalThrottle = 1;
+                }
+                else
+                    controls.Course = currentRotation - 175;
             }
             else if (_right)
             {
                 _right = false;
+                controls.HorizontalThrottle = 0;
                 controls.Course = null;
             }
 
@@ -93,6 +120,7 @@ namespace Combat.Ai
 
         private bool _joystick;
         private bool _throttle;
+        private bool _back;
         private bool _left;
         private bool _right;
         private bool _fire;

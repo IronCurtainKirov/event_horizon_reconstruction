@@ -145,7 +145,7 @@ namespace Combat.Ai
                 if (weapon.Info.BulletEffectType == BulletEffectType.ForDronesOnly && enemy.Type.Class != UnitClass.Drone) continue;
 
 				Vector2 target;
-				if (!AttackHelpers.TryGetTarget(weapon, ship, enemy, weapon.Info.BulletType == BulletType.Projectile && _directOnly ? BulletType.Direct : weapon.Info.BulletType, out target))
+				if (!AttackHelpers.TryGetTarget(weapon, ship, enemy, /*weapon.Info.BulletType == BulletType.Projectile && _directOnly ? BulletType.Direct : */weapon.Info.BulletType, out target))
 					continue;
 
 			    var shotImmediately = weapon.Info.BulletType == BulletType.Homing || weapon.Info.BulletType == BulletType.AreaOfEffect;

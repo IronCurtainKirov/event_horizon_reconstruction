@@ -1,3 +1,4 @@
+using Combat.Component.Ship;
 using Combat.Component.Unit.Classification;
 using Combat.Unit;
 using UnityEngine;
@@ -222,5 +223,34 @@ namespace Combat.Ai
 			var parent = context.Ship.Type.Owner;
 			return parent != null && parent.State == UnitState.Inactive;
 		}
+	}
+
+	public class IsNotAtFightCondition : ICondition
+	{
+        public bool IsTrue(Context context)
+        {
+            var ship = context.Ship;
+            var followShip = context.Ship.Order.FollowShip;
+			var enemy = context.Enemy;
+
+            if (!followShip.IsActive())
+            {
+				return false;
+            }
+
+            var shipRange = Helpers.ShipMaxRange(ship);
+			var followShipRange = Helpers.ShipMaxRange(followShip);
+			var enemyRange = Helpers.ShipMaxRange(enemy);
+			var shipDistance = Helpers.Distance(ship, enemy);
+			var followShipDistance = Helpers.Distance(followShip, enemy);
+
+            if (shipRange >= shipDistance || followShipRange >= followShipDistance
+				|| enemyRange >= shipDistance || enemyRange >= followShipDistance)
+			{
+				return false;
+			}
+			else
+				return true;
+        }
 	}
 }

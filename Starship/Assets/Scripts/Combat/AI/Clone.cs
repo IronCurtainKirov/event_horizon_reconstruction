@@ -14,12 +14,14 @@ namespace Combat.Ai
         }
 
         public bool IsAlive => _ship.IsActive();
+        public bool ControllerChangeToAi { get { return false; } }
+        public bool ControllerChangeToPlayer { get { return false; } }
 
         public void Update(float deltaTime)
         {
             _currentTime += deltaTime;
             var enemy = GetEnemy();
-            var context = new Context(_ship, enemy, null, null, _currentTime);
+            var context = new Context(_ship, enemy, null, null, null, _currentTime);
             _strategy.Apply(context);
         }
 

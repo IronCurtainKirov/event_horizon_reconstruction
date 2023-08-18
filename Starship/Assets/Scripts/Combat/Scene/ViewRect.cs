@@ -25,7 +25,7 @@ namespace Combat.Scene
             _zoom = 0;
         }
 
-        public void Update(IShip playerShip, IShip enemyShip, bool playerInTheMiddle)
+        public void Update(IShip playerShip, IShip enemyShip, bool playerInTheMiddle, Vector2 combatSize)
         {
             if (_zoom < 1.0f)
                 _zoom = Mathf.Clamp01(_zoom + 0.3f*Time.deltaTime);
@@ -65,10 +65,10 @@ namespace Combat.Scene
                 _topLeft.x = _lastPlayerPosition.x - (_lastPlayerPosition.x - _topLeft.x) * maxSize.x / width;
                 _bottomRight.x = _lastPlayerPosition.x + (_bottomRight.x - _lastPlayerPosition.x) * maxSize.x / width;
             }
-            else if (width < _minSize.x)
+            else if (width < /*_minSize.x*/maxSize.x)
             {
-                _bottomRight.x += (_minSize.x - width) / 2;
-                _topLeft.x -= (_minSize.x - width) / 2;
+                _bottomRight.x += (/*_minSize.x*/maxSize.x - width) / 2;
+                _topLeft.x -= (/*_minSize.x*/maxSize.x - width) / 2;
             }
 
             if (height > maxSize.y)
@@ -76,13 +76,13 @@ namespace Combat.Scene
                 _topLeft.y = _lastPlayerPosition.y - (_lastPlayerPosition.y - _topLeft.y) * maxSize.y / height;
                 _bottomRight.y = _lastPlayerPosition.y + (_bottomRight.y - _lastPlayerPosition.y) * maxSize.y / height;
             }
-            else if (height < _minSize.y)
+            else if (height < /*_minSize.y*/maxSize.y)
             {
-                _bottomRight.y += (_minSize.y - height) / 2;
-                _topLeft.y -= (_minSize.y - height) / 2;
+                _bottomRight.y += (/*_minSize.y*/maxSize.y - height) / 2;
+                _topLeft.y -= (/*_minSize.y*/maxSize.y - height) / 2;
             }
 
-            var margins = new Vector2((_bottomRight.x - _topLeft.x) * _margins, (_bottomRight.y - _topLeft.y) * _margins);
+            var margins = new Vector2((_bottomRight.x - _topLeft.x) * _margins, (_bottomRight.y - _topLeft.y) * _margins);//玩家离屏幕边框的距离
 
             var width1 = _bottomRight.x - _lastPlayerPosition.x;
             if (width1 < margins.x)
@@ -110,6 +110,30 @@ namespace Combat.Scene
             {
                 _bottomRight.y -= margins.y - height2;
                 _topLeft.y -= margins.y - height2;
+            }
+
+            var cameraWidth = _bottomRight.x - _topLeft.x;
+            var cameraHeight = _topLeft.y - _bottomRight.y;
+
+            if (_bottomRight.x > combatSize.x / 2)
+            {
+                _bottomRight.x = combatSize.x / 2;
+                _topLeft.x = _bottomRight.x - cameraWidth;
+            }
+            if (_topLeft.x < 0 - combatSize.x / 2)
+            {
+                _topLeft.x = 0 - combatSize.x / 2;
+                _bottomRight.x = _topLeft.x + cameraWidth;
+            }
+            if (_topLeft.y > combatSize.y / 2)
+            {
+                _topLeft.y = combatSize.y / 2;
+                _bottomRight.y = _topLeft.y - cameraHeight;
+            }
+            if (_bottomRight.y < 0 - combatSize.y / 2)
+            {
+                _bottomRight.y = 0 - combatSize.y / 2;
+                _topLeft.y = _bottomRight.y + cameraHeight;
             }
         }
 

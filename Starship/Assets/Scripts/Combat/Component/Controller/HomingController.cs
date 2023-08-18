@@ -29,7 +29,7 @@ namespace Combat.Component.Controller
 
             if (!_target.IsActive() || _timeFromLastUpdate > _targetUpdateCooldown)
             {
-                _target = _scene.Ships.GetEnemy(_unit, 0f, _maxRange*1.3f, 15f, false, false);
+                _target = _scene.Ships.GetEnemy(_unit, _scene, 0f, _maxRange*1.3f, 15f, false, false, false);
                 _timeFromLastUpdate = 0;
             }
 

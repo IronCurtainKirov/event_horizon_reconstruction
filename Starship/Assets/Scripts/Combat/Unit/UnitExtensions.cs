@@ -28,6 +28,14 @@ namespace Combat.Unit
         {
             return unit != null && unit.State == UnitState.Active;
         }
+        public static bool ControllerChangeToAi(this IShip ship)
+        {
+            return ship != null && ship.ControllerChangeToAi == true;
+        }
+        public static bool ControllerChangeToPlayer(this IShip ship)
+        {
+            return ship != null && ship.ControllerChangeToPlayer == true;
+        }
 
         public static void MoveTowards(this IUnit unit, Vector2 requiredPosition, float requiredRotation, Vector2 parentVelocity, float velocityFactor = 0.75f, float angularVelocityFactor = 3.0f)
         {

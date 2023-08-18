@@ -9,6 +9,8 @@ namespace Combat.Component.Engine
         public float Propulsion;
         public float TurnRate;
         public float Throttle;
+        public float BackwardThrottle;
+        public float HorizontalThrottle;
         public float Deceleration;
         public bool HasCourse;
         public float Course;

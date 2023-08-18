@@ -509,13 +509,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5720ed2f7320bdc41a871659de39ef2f, type: 3}
   - {fileID: 8300000, guid: 92bbaa4753358af42a605d5dd541e9d8, type: 3}
   _nebulaTextures:
-  - {fileID: 2800000, guid: 8852fbe0278a2ee47b8630cc33b96a05, type: 3}
   - {fileID: 2800000, guid: 91c491765b99ffa4badb9f0f73a4b5b3, type: 3}
   - {fileID: 2800000, guid: a988722a8fee9e944a937d84384f874c, type: 3}
   - {fileID: 2800000, guid: ba0532895e20d0444871a33afae00969, type: 3}
-  - {fileID: 2800000, guid: d539d2c30c8790546a12cef3c956a72e, type: 3}
-  - {fileID: 2800000, guid: 7c46004fbf65cb1418c5f65d4dab5bba, type: 3}
-  - {fileID: 2800000, guid: 34b86df2ca0454d4a878f91e7cdb72db, type: 3}
-  - {fileID: 2800000, guid: 0c835eaf8008a6546b3f4f984385ac21, type: 3}
-  - {fileID: 2800000, guid: 94217f0048825134aa4fd389c5cc5831, type: 3}
-  - {fileID: 2800000, guid: de7bfb3cfa66e7f41afed56b7184eea9, type: 3}

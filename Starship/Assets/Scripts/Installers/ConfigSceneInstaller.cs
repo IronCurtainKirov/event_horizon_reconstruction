@@ -21,7 +21,7 @@ namespace Installers
         {
             Container.Bind<Settings>().FromInstance(_settings);
             Container.BindAllInterfaces<ViewRect>().To<ViewRect>().AsTransient();
-            Container.BindAllInterfaces<Scene>().To<Scene>().AsSingle().WithArguments(new SceneSettings { AreaWidth = 200, AreaHeight = 200 }).NonLazy();
+            Container.BindAllInterfaces<Scene>().To<Scene>().AsSingle().WithArguments(new SceneSettings { AreaWidth = 1000, AreaHeight = 1000 }).NonLazy();
             Container.BindAllInterfaces<CollisionManager>().To<CollisionManager>().AsSingle();
             Container.BindAllInterfaces<AiManager>().To<AiManager>().AsSingle().NonLazy();
             Container.Bind<ShipControlsPanel>().FromInstance(_shipControlsPanel);

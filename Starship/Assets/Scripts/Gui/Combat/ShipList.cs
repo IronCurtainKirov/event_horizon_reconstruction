@@ -21,6 +21,7 @@ namespace Gui.Combat
         [SerializeField] private Text ShipNameText;
 
         public IShipInfo SelectedShip { get { return _selectedIndex >= 0 ? _fleet.Ships[_selectedIndex] : null; } }
+        public IList<IShipInfo> Ships { get { return _fleet.Ships; } }
         public int SelectedShipIndex { get { return _selectedIndex; } set { _targetIndex = value; UpdateSelection(); } }
 
         public void Initialize(IFleetModel fleet, int activeShipIndex)
@@ -134,6 +135,6 @@ namespace Gui.Combat
         private int _selectedIndex;
         private int _firstShipIndex;
         private IFleetModel _fleet;
-        private const int MaxShipCount = 24;
+        private const int MaxShipCount = 50;
     }
 }

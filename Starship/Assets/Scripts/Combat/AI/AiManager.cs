@@ -1,3 +1,5 @@
+using Combat.Component.Ship;
+using Services.Messenger;
 using System;
 using System.Collections.Generic;
 using Utils;
@@ -7,7 +9,12 @@ namespace Combat.Ai
 {
 	public sealed class AiManager : BackgroundTask, IAiManager, IInitializable, IDisposable, IFixedTickable
 	{
-		public void Add(IController item)
+        [Inject]
+        private AiManager(IMessenger messenger)
+        {
+            messenger.AddListener<IShip>(EventType.PlayerShipChanged, OnPlayerShipChanged);
+        }
+        public void Add(IController item)
 		{
 			lock (_lockObject) 
 			{
@@ -35,9 +42,19 @@ namespace Combat.Ai
 			System.Threading.Interlocked.Increment(ref _currentFrame);
 		}
 
-		protected override bool DoWork()
-		{
-			if (_currentFrame == _lastFrame)
+        public void OnPlayerShipChanged(IShip ship)
+        {
+            if (_recentlyAddedControllers.Count > 0)
+            {
+                _recentlyAddedControllers.RemoveAll(item => item.ControllerChangeToAi || item.ControllerChangeToPlayer);
+            }
+            _controllers.RemoveAll(item => item.ControllerChangeToAi || item.ControllerChangeToPlayer);
+        }
+
+        protected override bool DoWork()
+        {
+            //_controllers.RemoveAll(item => item.ControllerChangeToAi || item.ControllerChangeToPlayer);
+            if (_currentFrame == _lastFrame)
 				return false;
 
             lock (_lockObject) 

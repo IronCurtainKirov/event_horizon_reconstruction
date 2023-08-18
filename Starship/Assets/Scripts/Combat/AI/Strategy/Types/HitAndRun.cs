@@ -2,7 +2,9 @@ using System.Linq;
 using Combat.Component.Ship;
 using Combat.Component.Systems.Weapons;
 using Combat.Component.Unit;
+using Combat.Component.Unit.Classification;
 using Combat.Scene;
+using Combat.Unit;
 using UnityEngine;
 
 namespace Combat.Ai
@@ -37,6 +39,20 @@ namespace Combat.Ai
 
             this.AvoidPlanets(scene);
             this.Kamikaze(ship, enemy);
+
+            if (ship.Order.FollowShip.IsActive())
+            {
+                AddPolicy(
+                    new IsNotAtFightCondition(),
+                    new FollowAction(30, true));
+            }
+
+            if (ship.Type.Side != UnitSide.Enemy)
+            {
+                AddPolicy(
+                    new AlwaysTrueCondition(),
+                    new AvoidShipAction());
+            }
 
             AddPolicy(
                 new Condition.Any(new Condition.EnemyHasEnergy(0.2f), new Condition.IsFlagSet(rechargingState)),

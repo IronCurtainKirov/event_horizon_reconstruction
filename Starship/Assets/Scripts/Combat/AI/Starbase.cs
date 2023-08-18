@@ -23,10 +23,12 @@ namespace Combat.Ai
         }
 
         public bool IsAlive { get { return _ship.IsActive(); } }
+        public bool ControllerChangeToAi { get { return false; } }
+        public bool ControllerChangeToPlayer { get { return false; } }
 
         public void Update(float deltaTime)
         {
-            var context = new Context(_ship, null, _targets, null, _currentTime);
+            var context = new Context(_ship, null, null, _targets, null, _currentTime);
             var controls = new ShipControls(_ship);
 
             _targets.Update(deltaTime, _ship, null);

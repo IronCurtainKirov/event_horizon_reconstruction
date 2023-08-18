@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Combat.Component.Ship;
 
 namespace Combat.Ai
@@ -14,6 +15,9 @@ namespace Combat.Ai
 		public void Apply(IShip ship)
 		{
 			ship.Controls.Throttle = _thrust;
+            ship.Controls.BackwardThrottle = _backwardThrottle;
+            ship.Controls.HorizontalThrottle = _horizentalThrust;
+			ship.Controls.Deceleration = _deceleration;
 			ship.Controls.Course = _course;
 		    ship.Controls.SystemsState = _systems;
 		}
@@ -44,9 +48,53 @@ namespace Combat.Ai
 			{
 				return _thrust;
 			}
-		}
+        }
 
-		public bool IsSystemLocked(int id)
+        public float BackwardThrottle
+        {
+            set
+            {
+                if (!_thrustLocked)
+                {
+                    _backwardThrottle = value;
+                    _thrustLocked = true;
+                }
+            }
+            get
+            {
+                return _backwardThrottle;
+            }
+        }
+
+        public float HorizentalThrust
+        {
+            set
+            {
+                if (!_horizentalThrustLocked)
+                {
+                    _horizentalThrust = value;
+                    _horizentalThrustLocked = true;
+                }
+            }
+            get
+            {
+                return _horizentalThrust;
+            }
+        }
+
+        public float Deceleration
+        {
+            set
+            {
+                _deceleration = value;
+            }
+            get
+            {
+                return _deceleration;
+            }
+        }
+
+        public bool IsSystemLocked(int id)
 		{
 			return _systemsMask[id];
         }
@@ -64,8 +112,12 @@ namespace Combat.Ai
 		public bool MovementLocked { get { return _thrustLocked; } }
 
 		private bool _thrustLocked;
-		private float _thrust;
-		private bool _courseLocked;
+        private bool _horizentalThrustLocked;
+        private float _thrust;
+        private float _backwardThrottle;
+        private float _horizentalThrust;
+        private float _deceleration;
+        private bool _courseLocked;
 		private float? _course;
 	    private BitArray _systemsMask;
         private BitArray _systems;
@@ -73,7 +125,7 @@ namespace Combat.Ai
 
     public struct Context
 	{
-	    public Context(IShip ship, IShip target, TargetList secondaryTargets, ThreatList threats, float currentTime)
+	    public Context(IShip ship, IShip target, List<IShip> avoidShipList, TargetList secondaryTargets, ThreatList threats, float currentTime)
 	    {
 	        Ship = ship;
 	        Enemy = target;
@@ -81,7 +133,8 @@ namespace Combat.Ai
 	        CurrentTime = currentTime;
 	        UnusedEnergy = new FloatReference { Value = Ship.Stats.Energy.Value };
 	        Targets = secondaryTargets;
-	    }
+            AvoidShipList = avoidShipList;
+        }
 
 		public float CurrentTime;
 		public IShip Ship;
@@ -89,6 +142,7 @@ namespace Combat.Ai
         public TargetList Targets;
         public IShip Enemy;
 	    public FloatReference UnusedEnergy;
+		public List<IShip> AvoidShipList;
 
         public class FloatReference
         {

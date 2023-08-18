@@ -20,6 +20,7 @@ namespace Combat.Component.Bullet.Action
         public float Weight => _body.Weight;
         public float Scale => _body.Scale;
         public void Move(Vector2 position) { }
+        public void SetVelocity(Vector2 velocity) { }
 
         public void Turn(float rotation)
         {

@@ -35,6 +35,8 @@ namespace Combat.Component.Body
             transform.localPosition = Parent?.ChildPosition(Position) ?? Position;
         }
 
+        public void SetVelocity(Vector2 velocity) { }
+
         public void Turn(float rotation)
         {
             Rotation = Mathf.Repeat(rotation, 360);

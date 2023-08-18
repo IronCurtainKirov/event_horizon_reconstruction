@@ -79,7 +79,22 @@ namespace Gui.Combat
                 else
                     _ship.Controls.Course = null;
 
-                _ship.Controls.Throttle = Mathf.Abs(Mathf.DeltaAngle(_ship.Controls.Course.GetValueOrDefault(_ship.Body.Rotation), _ship.Body.Rotation)) < 30 ? Mathf.Clamp01((power - _min) / (_max - _min)) : 0;
+                var deltaAngle = Mathf.Abs(Mathf.DeltaAngle(_ship.Controls.Course.GetValueOrDefault(_ship.Body.Rotation), _ship.Body.Rotation));
+                if (deltaAngle < 30)
+                {
+                    _ship.Controls.Throttle = Mathf.Clamp01((power - _min) / (_max - _min));
+                    _ship.Controls.BackwardThrottle = 0;
+                }
+                else if (deltaAngle > 150)
+                {
+                    _ship.Controls.BackwardThrottle = Mathf.Clamp01((power - _min) / (_max - _min));
+                    _ship.Controls.Throttle = 0;
+                }
+                else
+                {
+                    _ship.Controls.Throttle = 0;
+                    _ship.Controls.BackwardThrottle = 0;
+                }
             }
         }
 

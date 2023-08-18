@@ -10,6 +10,9 @@ namespace Combat.Component.Controls
 
         private BitArray _systems = new BitArray(0);
         private float _throttle;
+        private float _backwardThrottle;
+        private float _horizontalThrottle;
+        private float _deceleration;
 
         public CommonControls(IShip ship)
         {
@@ -24,6 +27,36 @@ namespace Combat.Component.Controls
             set
             {
                 _throttle = value;
+                DataChanged = true;
+            }
+        }
+
+        public float BackwardThrottle
+        {
+            get => _backwardThrottle;
+            set
+            {
+                _backwardThrottle = value;
+                DataChanged = true;
+            }
+        }
+
+        public float HorizontalThrottle
+        {
+            get => _horizontalThrottle;
+            set
+            {
+                _horizontalThrottle = value;
+                DataChanged = true;
+            }
+        }
+
+        public float Deceleration
+        {
+            get => _deceleration;
+            set
+            {
+                _deceleration = value;
                 DataChanged = true;
             }
         }

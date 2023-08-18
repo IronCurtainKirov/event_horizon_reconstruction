@@ -11,6 +11,7 @@ public enum EventType
     WindowOpened,
     WindowClosed,
     EscapeKeyPressed,
+    SpaceKeyPressed,
 
     AccountStatusChanged, // Status
     CloudDataLoaded,
@@ -61,6 +62,7 @@ public enum EventType
     EnemyShipCountChanged, // int
 	CombatShipCreated, // IShip
     CombatShipDestroyed, // IShip
+    PlayerShipChanged, // IShip
     GamePaused, // bool
     PlayerShipDocked, // int
     PlayerShipUndocked, // int

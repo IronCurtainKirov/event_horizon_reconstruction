@@ -23,6 +23,8 @@ namespace Combat.Component.Systems.Devices
         {
             if (_active)
                 data.Deceleration += _power;
+            else
+                data.Deceleration = 0;
 
             return true;
         }

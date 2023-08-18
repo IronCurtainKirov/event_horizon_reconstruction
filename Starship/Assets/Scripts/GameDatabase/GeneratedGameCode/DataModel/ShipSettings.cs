@@ -35,7 +35,7 @@ namespace GameDatabase.DataModel
 			BaseShieldRechargeRate = UnityEngine.Mathf.Clamp(serializable.BaseShieldRechargeRate, -3.402823E+38f, 3.402823E+38f);
 			ShieldRechargeCooldown = UnityEngine.Mathf.Clamp(serializable.ShieldRechargeCooldown, 0f, 3.402823E+38f);
 			BaseDroneReconstructionSpeed = UnityEngine.Mathf.Clamp(serializable.BaseDroneReconstructionSpeed, 0f, 3.402823E+38f);
-			MaxVelocity = UnityEngine.Mathf.Clamp(serializable.MaxVelocity, 5f, 50f);
+			MaxVelocity = UnityEngine.Mathf.Clamp(serializable.MaxVelocity, 5f, 15f);
 			MaxTurnRate = UnityEngine.Mathf.Clamp(serializable.MaxTurnRate, 5f, 50f);
 
 			OnDataDeserialized(serializable, loader);

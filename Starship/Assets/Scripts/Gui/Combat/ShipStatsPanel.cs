@@ -17,7 +17,6 @@ namespace Gui.Combat
         [Inject] private readonly IResourceLocator _resourceLocator;
 
         [SerializeField] private ProgressBar _armorPoints;
-        [SerializeField] private ProgressBar _shieldPoints;
         [SerializeField] private ProgressBar _energyPoints;
         [SerializeField] private Image _icon;
         [SerializeField] private SelectShipPanelItemViewModel _shipItem;
@@ -53,10 +52,8 @@ namespace Gui.Combat
 
             UpdateResistance();
 
-            _hasShield = _ship.Stats.Shield.Exists;
             _hasArmor = _ship.Stats.Armor.Exists;
 
-            _shieldPoints.gameObject.SetActive(_hasShield);
             _armorPoints.gameObject.SetActive(_hasArmor);
         }
 
@@ -109,34 +106,25 @@ namespace Gui.Combat
 
             var total = 0f;
             if (_hasArmor) total += _ship.Stats.Armor.MaxValue;
-            if (_hasShield) total += _ship.Stats.Shield.MaxValue;
 
             var armor = _hasArmor ? _ship.Stats.Armor.Value : 0;
-            var shield = _hasShield ? _ship.Stats.Shield.Value : 0;
 
             if (_hasArmor)
             {
-                _armorPoints.Y0 = 0;
-                _armorPoints.Y1 = armor / total;
+                _armorPoints.X0 = 0;
+                _armorPoints.X1 = armor / total;
                 _armorPoints.SetAllDirty();
-            }
-            if (_hasShield)
-            {
-                _shieldPoints.Y0 = armor / total;
-                _shieldPoints.Y1 = (armor + shield) / total;
-                _shieldPoints.SetAllDirty();
             }
 
             var energy = _ship.Stats.Energy.Percentage;
             if (!Mathf.Approximately(_energyPoints.Y1, energy))
             {
-                _energyPoints.Y1 = energy;
+                _energyPoints.X1 = energy;
                 _energyPoints.SetAllDirty();
             }
         }
 
         private float _updateResistanceCooldown;
-        private bool _hasShield;
         private bool _hasArmor;
         private IShip _ship;
     }

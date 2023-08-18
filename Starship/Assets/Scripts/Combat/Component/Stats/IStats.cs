@@ -8,6 +8,7 @@ namespace Combat.Component.Stats
     public interface IStats : IDisposable
     {
         bool IsAlive { get; }
+        bool IsStealth { get; set; }
 
         IResourcePoints Armor { get; }
         IResourcePoints Shield { get; }

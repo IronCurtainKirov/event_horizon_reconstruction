@@ -18,7 +18,7 @@ namespace Combat.Component.Unit.Classification
         public UnitClass Class { get { return _class; } }
         public UnitSide Side { get { return _owner != null ? _owner.Type.Side : _side; } }
         public IShip Owner { get { return _owner; } set { _owner = value; } }
-
+        public void ChangeSide(UnitSide NewSide) { _side = NewSide; }
         public Layer CollisionLayer
         {
             get
@@ -81,7 +81,7 @@ namespace Combat.Component.Unit.Classification
 
         private IShip _owner;
         private readonly UnitClass _class;
-        private readonly UnitSide _side;
+        private UnitSide _side;
 
         public static readonly UnitType Default = new UnitType(UnitClass.SpaceObject, UnitSide.Undefined, null);
     }

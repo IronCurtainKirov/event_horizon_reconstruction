@@ -43,21 +43,21 @@ namespace Combat.Manager
         }
 
         private void OnShipCreated(IShip ship)
-        {
+        {/*
             if (ship.Type.Class != UnitClass.Ship)
                 return;
 
             switch (ship.Type.Side)
             {
                 case UnitSide.Enemy:
-                    _hasActiveEnemyShip = _combatModel.EnemyFleet.Ships.Any(item => item.Status == ShipStatus.Active);
+                    _hasActiveEnemyShip = _combatModel.EnemyFleet.Ships.Any(item => item.Status != ShipStatus.Destroyed);
                     ResetTimer();
                     break;
                 case UnitSide.Player:
                     _activePlayerShip = ship;
-                    _hasActivePlayerShip = _combatModel.PlayerFleet.Ships.Any(item => item.Status == ShipStatus.Active);
+                    _hasActivePlayerShip = _combatModel.PlayerFleet.Ships.Any(item => item.Status != ShipStatus.Destroyed);
                     break;
-            }
+            }*/
         }
 
         private void OnShipDestroyed(IShip ship)
@@ -68,16 +68,16 @@ namespace Combat.Manager
             switch (ship.Type.Side)
             {
                 case UnitSide.Player:
-                    if (_combatModel.Rules.TimeoutBehaviour == TimeoutBehaviour.Decay || ship.Type.Side == UnitSide.Enemy)
-                        ResetTimer();
+                    //if (_combatModel.Rules.TimeoutBehaviour == TimeoutBehaviour.Decay || ship.Type.Side == UnitSide.Enemy)
+                    //    ResetTimer();
 
-                    _hasActivePlayerShip = _combatModel.PlayerFleet.Ships.Any(item => item.Status == ShipStatus.Active);
+                    _hasActivePlayerShip = _combatModel.PlayerFleet.Ships.Any(item => item.Status != ShipStatus.Destroyed);
                     break;
                 case UnitSide.Enemy:
-                    if (_combatModel.Rules.TimeoutBehaviour != TimeoutBehaviour.AllEnemiesThenDraw || _combatModel.EnemyFleet.IsAnyShipLeft())
-                        ResetTimer();
+                    //if (_combatModel.Rules.TimeoutBehaviour != TimeoutBehaviour.AllEnemiesThenDraw || _combatModel.EnemyFleet.IsAnyShipLeft())
+                    //    ResetTimer();
 
-                    _hasActiveEnemyShip = _combatModel.EnemyFleet.Ships.Any(item => item.Status == ShipStatus.Active);
+                    _hasActiveEnemyShip = _combatModel.EnemyFleet.Ships.Any(item => item.Status != ShipStatus.Destroyed);
                     break;
             }
         }
@@ -106,7 +106,7 @@ namespace Combat.Manager
 
                 switch (_combatModel.Rules.TimeoutBehaviour)
                 {
-                    case TimeoutBehaviour.NextEnemy:
+                    case TimeoutBehaviour.NextEnemy:/*
                         if (_combatManager.CanCallNextEnemy())
                         {
                             if (timeLeft <= 0)
@@ -118,23 +118,11 @@ namespace Combat.Manager
                         else
                         {
                             timeLeft = 0;
-                        }
-
+                        }*/
+                        _timerPanel.Time = 0;
                         break;
                     case TimeoutBehaviour.AllEnemiesThenDraw:
-                        var hasMoreShips = _combatModel.EnemyFleet.IsAnyShipLeft();
-                        if (!hasMoreShips)
-                            timeLeft += 2 * _combatModel.Rules.TimeLimit;
-
-                        if (hasMoreShips)
-                        {
-                            if (timeLeft <= 0 && _combatManager.CanCallNextEnemy())
-                            {
-                                _combatManager.CallNextEnemy();
-                                ResetTimer();
-                            }
-                        }
-                        else if (timeLeft > 0 && timeLeft < 15)
+                        if (timeLeft > 0 && timeLeft < 60)
                         {
                             _background.OutOfTimeMode = true;
                         }
@@ -142,7 +130,7 @@ namespace Combat.Manager
                         {
                             _combatManager.Exit();
                         }
-
+                        _timerPanel.Time = Mathf.Max(0, timeLeft);
                         break;
                     case TimeoutBehaviour.Decay:
                         if (timeLeft <= 0)
@@ -151,11 +139,9 @@ namespace Combat.Manager
                             _activePlayerShip.Stats.Shield.Get(-timeLeft * Time.deltaTime * _activePlayerShip.Stats.Shield.MaxValue / 100f);
                             _background.OutOfTimeMode = true;
                         }
+                        _timerPanel.Time = Mathf.Max(0, timeLeft);
                         break;
                 }
-
-                _timerPanel.Enabled = true;
-                _timerPanel.Time = Mathf.Max(0, timeLeft);
             }
 
             Alarm = _background.OutOfTimeMode;
@@ -179,8 +165,8 @@ namespace Combat.Manager
         }
 
         private IShip _activePlayerShip;
-        private bool _hasActiveEnemyShip;
-        private bool _hasActivePlayerShip;
+        private bool _hasActiveEnemyShip = true;
+        private bool _hasActivePlayerShip = true;
 
         private bool _isAlarmEnabled;
         private float _elapsedTime;

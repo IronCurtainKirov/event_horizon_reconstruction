@@ -54,7 +54,7 @@ namespace Combat.Scene
             _bottomRight.y = position.y + height / 2;
         }
 
-        public void Update(IShip playerShip, IShip enemyShip, bool playerInTheMiddle)
+        public void Update(IShip playerShip, IShip enemyShip, bool playerInTheMiddle, Vector2 combatSize)
         {
             UpdateZoom();
 

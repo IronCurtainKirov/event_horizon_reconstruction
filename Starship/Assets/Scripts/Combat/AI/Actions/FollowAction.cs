@@ -1,20 +1,25 @@
+using Combat.Unit;
 using UnityEngine;
 
 namespace Combat.Ai
 {
 	public class FollowAction : IAction
 	{
-		public FollowAction(float distance)
+		public FollowAction(float distance, bool followAlly = false)
 		{
 			_distance = distance;
-		}
+            _followAlly = followAlly;
+        }
 		
 		public void Perform(Context context, ref ShipControls controls)
 		{
 			var ship = context.Ship;
-			var enemy = context.Enemy;
+			var enemy = _followAlly ? ship.Order.FollowShip : context.Enemy;
 
 			if (controls.MovementLocked)
+				return;
+
+			if (!enemy.IsActive())
 				return;
 			
 			var direction = ship.Body.Position.Direction(enemy.Body.Position).normalized;
@@ -30,5 +35,6 @@ namespace Combat.Ai
 		}
 
 		private readonly float _distance;
-	}
+        private readonly bool _followAlly;
+    }
 }

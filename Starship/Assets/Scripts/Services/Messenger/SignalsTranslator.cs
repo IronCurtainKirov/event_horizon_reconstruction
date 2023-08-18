@@ -36,8 +36,10 @@ namespace Services.Messenger
             EnemyFoundSignal enemyFoundSignal,
             GameDatabaseLoadedSignal databaseLoadedSignal,
             EscapeKeyPressedSignal escapeKeyPressedSignal,
+            SpaceKeyPressedSignal spaceKeyPressedSignal,
             ShipCreatedSignal shipCreatedSignal,
             ShipDestroyedSignal shipDestroyedSignal,
+            PlayerShipChangedSignal playerShipChangedSignal,
             StarContentChangedSignal starContentChangedSignal,
             QuestListChangedSignal questListChangedSignal,
             BaseCapturedSignal baseCapturedSignal,
@@ -75,10 +77,14 @@ namespace Services.Messenger
             _databaseLoadedSignal.Event += OnDatabaseLoaded;
             _escapeKeyPressedSignal = escapeKeyPressedSignal;
             _escapeKeyPressedSignal.Event += OnEscapeKeyPressed;
+            _spaceKeyPressedSignal = spaceKeyPressedSignal;
+            _spaceKeyPressedSignal.Event += OnSpaceKeyPressed;
             _shipCreatedSignal = shipCreatedSignal;
             _shipCreatedSignal.Event += OnCombatShipCreated;
             _shipDestroyedSignal = shipDestroyedSignal;
             _shipDestroyedSignal.Event += OnCombatShipDestroyed;
+            _playerShipChangedSignal = playerShipChangedSignal;
+            _playerShipChangedSignal.Event += OnPlayerShipChanged;
             _resourcesChangedSignal = resourcesChangedSignal;
             _resourcesChangedSignal.Event += OnResourcesChanged;
             _starContentChangedSignal = starContentChangedSignal;
@@ -165,6 +171,10 @@ namespace Services.Messenger
         {
             _messenger.Broadcast(EventType.EscapeKeyPressed);
         }
+        private void OnSpaceKeyPressed()
+        {
+            _messenger.Broadcast(EventType.SpaceKeyPressed);
+        }
 
         private void OnDatabaseLoaded()
         {
@@ -179,6 +189,10 @@ namespace Services.Messenger
         private void OnCombatShipDestroyed(Combat.Component.Ship.IShip ship)
         {
             _messenger.Broadcast<Combat.Component.Ship.IShip>(EventType.CombatShipDestroyed, ship);
+        }
+        private void OnPlayerShipChanged(Combat.Component.Ship.IShip ship)
+        {
+            _messenger.Broadcast<Combat.Component.Ship.IShip>(EventType.PlayerShipChanged, ship);
         }
 
         private void OnStarContentChanged(int starId)
@@ -218,8 +232,10 @@ namespace Services.Messenger
         private readonly EnemyFoundSignal _enemyFoundSignal;
         private readonly GameDatabaseLoadedSignal _databaseLoadedSignal;
         private readonly EscapeKeyPressedSignal _escapeKeyPressedSignal;
+        private readonly SpaceKeyPressedSignal _spaceKeyPressedSignal;
         private readonly ShipCreatedSignal _shipCreatedSignal;
         private readonly ShipDestroyedSignal _shipDestroyedSignal;
+        private readonly PlayerShipChangedSignal _playerShipChangedSignal;
         private readonly ResourcesChangedSignal _resourcesChangedSignal;
         private readonly StarContentChangedSignal _starContentChangedSignal;
         private readonly QuestListChangedSignal _questListChangedSignal;

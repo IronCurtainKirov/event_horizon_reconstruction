@@ -20,11 +20,12 @@ namespace Combat.Domain
 
     public class CombatModelBuilder : ICombatModelBuilder
     {
-        public CombatModelBuilder(IDatabase database, ShipCreatedSignal shipCreatedSignal, ShipDestroyedSignal shipDestroyedSignal, PlayerSkills playerSkills)
+        public CombatModelBuilder(IDatabase database, ShipCreatedSignal shipCreatedSignal, ShipDestroyedSignal shipDestroyedSignal, PlayerSkills playerSkills, PlayerShipChangedSignal playerShipChangedSignal)
         {
             _database = database;
             _shipDestroyedSignal = shipDestroyedSignal;
             _shipCreatedSignal = shipCreatedSignal;
+            _playerShipChangedSignal = playerShipChangedSignal;
             _playerSkills = playerSkills;
 
             Rules = Model.Factories.CombatRules.Default();
@@ -55,7 +56,8 @@ namespace Combat.Domain
                 new FleetModel(playerFleet.Ships, UnitSide.Player, _database, playerFleet.AiLevel, useBonuses ? _playerSkills : null),
                 new FleetModel(enemyFleet.Ships, UnitSide.Enemy, _database, enemyFleet.AiLevel),
                 _shipCreatedSignal, 
-                _shipDestroyedSignal);
+                _shipDestroyedSignal,
+                _playerShipChangedSignal);
 
             model.SpecialRewards = specialLoot != null ? _specialReward.Concat(specialLoot) : _specialReward;
             model.Rules = Rules;
@@ -66,6 +68,7 @@ namespace Combat.Domain
         private readonly IDatabase _database;
         private readonly ShipCreatedSignal _shipCreatedSignal;
         private readonly ShipDestroyedSignal _shipDestroyedSignal;
+        private readonly PlayerShipChangedSignal _playerShipChangedSignal;
         private readonly List<IProduct> _specialReward = new List<IProduct>();
         private readonly PlayerSkills _playerSkills;
 

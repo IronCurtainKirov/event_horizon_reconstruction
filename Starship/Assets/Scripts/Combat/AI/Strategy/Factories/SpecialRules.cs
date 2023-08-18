@@ -51,7 +51,7 @@ namespace Combat.Ai
 
                 if (device is TeleporterDevice && enemy != null)
                 {
-                    if (level < 30) continue;
+                    //if (level < 30) continue;
 
                     var enemyAttackRange = Helpers.ShipMaxRange(enemy);
                     strategy.AddPolicy(
@@ -64,7 +64,7 @@ namespace Combat.Ai
                 }
                 else if (device is DecoyDevice && enemy != null)
                 {
-                    if (level < 30) continue;
+                    //if (level < 30) continue;
 
                     float distance = 0;
                     if (enemy.Type.Class == UnitClass.Drone)

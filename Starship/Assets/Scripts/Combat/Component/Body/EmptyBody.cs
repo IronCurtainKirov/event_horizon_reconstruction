@@ -34,6 +34,8 @@ namespace Combat.Component.Body
             Position = position;
         }
 
+        public void SetVelocity(Vector2 velocity) { }
+
         public void Turn(float rotation)
         {
             Rotation = Mathf.Repeat(rotation, 360);

@@ -29,6 +29,10 @@ using Utils;
 using Zenject;
 using IShip = Combat.Component.Ship.IShip;
 using Ship = Combat.Component.Ship.Ship;
+using Gui.Combat;
+using System.Xml.Linq;
+using GameDatabase.Model;
+using Combat.Effects;
 
 namespace Combat.Factory
 {
@@ -99,9 +103,12 @@ namespace Combat.Factory
                 ship.AddTrigger(new ShipWreckAction(ship, _effectFactory, _resourceLocator.GetSprite(stats.ModelImage), spec.Stats.ShipColor.Color, _settings.StaticWrecks));
             }
 
-            if (spec.Stats.ShieldPoints > 0)
-                ship.AddTrigger(CreateShield(ship, stats.EngineColor));
+            //if (spec.Stats.ShieldPoints > 0)
+            //    ship.AddTrigger(CreateShield(ship, stats.EngineColor));
 
+            if (!isDrone) 
+                CreateShipPanel(ship);
+            
             foreach (var item in spec.Platforms)
             {
                 if (item.Companion == null && !item.Weapons.Any() && !item.WeaponsObsolete.Any())
@@ -283,6 +290,16 @@ namespace Combat.Factory
         {
             var collider = gameObjectHolder.GetComponent<ICollider>();
             return collider;
+        }
+
+        private ShipPanel CreateShipPanel(IShip ship)
+        {
+            var gameObject = new GameObjectHolder(_prefabCache.LoadResourcePrefab("Combat/Objects/ShipPanel"), _objectPool);
+            var shipPanel = gameObject.GetComponent<ShipPanel>();
+
+            shipPanel.Initialize(gameObject, ship);
+
+            return shipPanel;
         }
 
         private ShieldEffect CreateShield(IShip ship, Color color)

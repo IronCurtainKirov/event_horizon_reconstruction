@@ -45,6 +45,9 @@ namespace Combat.Component.Engine
         }
 
         public float Throttle { get { return _engineData.Throttle; } set { _engineData.Throttle = value; } }
+        public float BackwardThrottle { get { return _engineData.BackwardThrottle; } set { _engineData.BackwardThrottle = value; } }
+        public float HorizontalThrottle { get { return _engineData.HorizontalThrottle; } set { _engineData.HorizontalThrottle = value; } }
+        public float Deceleration { get { return _engineData.Deceleration; } set { _engineData.Deceleration = value; } }
 
         public Modifications<EngineData> Modifications { get { return _modifications; } }
 
@@ -54,7 +57,7 @@ namespace Combat.Component.Engine
 
             if (Throttle > 0.01f)
                 ApplyAcceleration(body, elapsedTime);
-            if (_engineData.Deceleration > 0)
+            if (Deceleration > 0)
                 ApplyDeceleration(body, elapsedTime);
 
             if (_engineData.HasCourse)
@@ -102,7 +105,7 @@ namespace Combat.Component.Engine
                 return;
 
             var direction = velocity.normalized;
-            body.ApplyAcceleration(-_engineData.Deceleration * elapsedTime * direction);
+            body.ApplyAcceleration(-Deceleration * elapsedTime * direction);
         }
 
         private void ApplyAngularAcceleration(IBody body, float elapsedTime)

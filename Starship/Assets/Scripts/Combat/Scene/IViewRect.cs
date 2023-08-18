@@ -13,6 +13,6 @@ namespace Combat.Scene
 
         void Zoom();
 
-        void Update(IShip playerShip, IShip enemyShip, bool playerInCenter);
+        void Update(IShip playerShip, IShip enemyShip, bool playerInCenter, Vector2 combatSize);
     }
 }

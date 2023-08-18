@@ -74,7 +74,7 @@ namespace Model
 				var rules = Default();
                 rules.TimeoutBehaviour = TimeoutBehaviour.AllEnemiesThenDraw;
 				rules.RewardType = Model.Military.RewardType.SpecialOnly;
-			    rules.TimeLimit = 90;
+			    rules.TimeLimit = 300;
 			    rules.MaxEnemies = 12;
                 rules.ExpCondition = RewardCondition.Never;
                 rules.DisableBonusses = true;

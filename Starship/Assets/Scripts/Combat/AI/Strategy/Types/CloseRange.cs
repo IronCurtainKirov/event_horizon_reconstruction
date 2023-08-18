@@ -1,6 +1,8 @@
 ﻿using Combat.Component.Ship;
 using Combat.Component.Unit;
+using Combat.Component.Unit.Classification;
 using Combat.Scene;
+using Combat.Unit;
 
 namespace Combat.Ai
 {
@@ -23,7 +25,7 @@ namespace Combat.Ai
 			var enemyDistance = Helpers.ShipMaxRange(enemy);
 			var rechargingState = new State<bool>();
 			
-			if (level >= 40)
+			//if (level >= 40)
 				this.AttackIfTooClose(ship, rechargingState, enemyDistance, level);
 			
 			this.AvoidPlanets(scene);
@@ -32,14 +34,28 @@ namespace Combat.Ai
 			this.UseDevices(ship, enemy, rechargingState, level);
 			this.AttackIfInRange(ship, rechargingState, level);
 
-			if (level >= 20)
+			//if (level >= 20)
 				this.UseDefenseSystems(ship, level);
 
-			if (level >= 50)
+			//if (level >= 50)
 				this.AvoidThreats();
-				
-			if (level >= 75)
-			{
+
+            if (ship.Order.FollowShip.IsActive())
+            {
+                AddPolicy(
+                    new IsNotAtFightCondition(),
+                    new FollowAction(30, true));
+            }
+
+            if (ship.Type.Side != UnitSide.Enemy)
+            {
+                AddPolicy(
+                    new AlwaysTrueCondition(),
+                    new AvoidShipAction());
+            }
+
+            //if (level >= 75)
+            {
 				AddPolicy(
 					new Condition.All(new Condition.CanCatch(), new Condition.IsFlagNotSet(rechargingState)),
 					new FollowAction(attackRange),

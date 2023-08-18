@@ -20,7 +20,7 @@ using Zenject;
 
 namespace Controller
 {
-	public class Manager : MonoBehaviour
+	/*public class Manager : MonoBehaviour
 	{
         [Inject] private readonly GameSettings _gameSettings;
 	    [Inject] private readonly ExitSignal.Trigger _exitTrigger;
@@ -88,5 +88,5 @@ namespace Controller
             if (_scene.Ships.Items.Any(item => item.IsActive()))
 		        Stop();
 		}
-	}
+	}*/
 }

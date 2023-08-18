@@ -19,6 +19,8 @@ using Combat.Component.Triggers;
 using Combat.Unit;
 using Constructor;
 using UnityEngine;
+using Combat.Ai;
+using Gui.Combat;
 
 namespace Combat.Component.Ship
 {
@@ -38,7 +40,7 @@ namespace Combat.Component.Ship
             : base(type, body, view, collider, physics)
         {
             // TODO: make them moddable? or constants?
-            body.SetVelocityLimit(50f);
+            body.SetVelocityLimit(30f);
             // 7 rotations per second
             body.SetAngularVelocityLimit(360 * 7);
             AddResource(_systems = new ShipSystems(this));
@@ -59,6 +61,10 @@ namespace Combat.Component.Ship
         public IFeatures Features { get { return _features; } }
         public IShipSystems Systems { get { return _systems; } }
         public IShipEffects Effects { get { return _effects; } }
+        public IOrder Order { get { return _order; } }
+        public MapIcon MapIcon { get { return _mapIcon; } }
+        public bool ControllerChangeToAi { get { return _controllerChangeToAi; } }
+        public bool ControllerChangeToPlayer { get { return _controllerChangeToPlayer; } }
 
         public override float DefenseMultiplier => _stats.HitPointsMultiplier;
 
@@ -84,11 +90,17 @@ namespace Combat.Component.Ship
             {
                 Engine.Course = Controls.Course;
                 Engine.Throttle = Controls.Throttle;
+                Engine.BackwardThrottle = Controls.BackwardThrottle;
+                Engine.HorizontalThrottle = Controls.HorizontalThrottle;
+                Engine.Deceleration = Controls.Deceleration;
                 Engine.Update(elapsedTime, Body);
             }
             else
             {
                 Engine.Throttle = 0;
+                Engine.BackwardThrottle = 0;
+                Engine.HorizontalThrottle = 0;
+                Engine.Deceleration = 0;
             }
 
             Features.UpdatePhysics(elapsedTime, Collider);
@@ -166,6 +178,11 @@ namespace Combat.Component.Ship
                 AddTrigger(trigger);
         }
 
+        public void AddMapIcon(MapIcon mapIcon)
+        {
+            _mapIcon = mapIcon;
+        }
+
         private void UpdateSystems(float elapsedTime)
         {
             if (_state != UnitState.Active)
@@ -188,6 +205,16 @@ namespace Combat.Component.Ship
             _state = UnitState.Destroyed;
         }
 
+        public void ChangeControllerToAi() { _controllerChangeToAi = true; }
+
+        public void ChangeControllerToPlayer() { _controllerChangeToPlayer = true; }
+
+        public void RemoveControllerChangingMark() {
+            _controllerChangeToAi = false;
+            _controllerChangeToPlayer = false;
+
+        }
+
         private UnitState _state;
         private readonly IShipSpecification _spec;
         private readonly ShipSystems _systems;
@@ -195,5 +222,9 @@ namespace Combat.Component.Ship
         private readonly IStats _stats;
         private readonly IFeatures _features;
         private readonly ICollisionBehaviour _collisionBehaviour;
+        private readonly IOrder _order = new Order();
+        private MapIcon _mapIcon;
+        private bool _controllerChangeToAi = false;
+        private bool _controllerChangeToPlayer = false;
     }
 }

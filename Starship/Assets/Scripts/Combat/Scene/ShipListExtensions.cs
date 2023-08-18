@@ -145,7 +145,8 @@ namespace Combat.Scene
             return enemy;
         }
 
-        public static IShip GetEnemy(this IUnitList<IShip> shipList, IUnit unit, float rotation, float maxRange, float maxDeviation, bool trueVision, bool ignoreDrones)
+        public static IShip GetEnemy(this IUnitList<IShip> shipList, IUnit unit, IScene scene, float rotation, float maxRange, float maxDeviation,
+            bool trueVision, bool ignoreDrones, bool canAvoidShip)
         {
             IShip enemy = null;
             float minRange = float.MaxValue;
@@ -167,6 +168,9 @@ namespace Combat.Scene
                         continue;
 
                     if (ignoreDrones && ship.Type.Class == UnitClass.Drone)
+                        continue;
+
+                    if (canAvoidShip && scene.AvoidShipList.Contains(ship))
                         continue;
 
                     var dir = unit.Body.Position.Direction(ship.Body.Position);

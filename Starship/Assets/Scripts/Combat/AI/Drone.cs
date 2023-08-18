@@ -24,6 +24,8 @@ namespace Combat.Ai
         }
 
         public bool IsAlive { get { return _ship.IsActive(); } }
+        public bool ControllerChangeToAi { get { return false; } }
+        public bool ControllerChangeToPlayer { get { return false; } }
 
         public void Update(float deltaTime)
         {
@@ -37,7 +39,7 @@ namespace Combat.Ai
                 _targets.Update(deltaTime, _ship, enemy);
             }
 
-            var context = new Context(_ship, enemy, _targets, _threats, _currentTime);
+            var context = new Context(_ship, enemy, null, _targets, _threats, _currentTime);
             _strategy.Apply(context);
         }
 

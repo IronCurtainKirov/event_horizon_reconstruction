@@ -16,6 +16,7 @@ namespace Combat.Component.Systems.Devices
         {
             MaxCooldown = deviceSpec.Cooldown;
 
+            _ship = ship;
             _invulnerability = invulnerability;
         }
 
@@ -63,6 +64,7 @@ namespace Combat.Component.Systems.Devices
         {
             TimeFromLastUse = 0;
             base.Deactivate();
+            _ship.Stats.IsStealth = false;
         }
 
         public override IUnitAction UnitAction => this;
@@ -89,6 +91,7 @@ namespace Combat.Component.Systems.Devices
                 if (Activate())
                 {
                     IsEnabled = true;
+                    _ship.Stats.IsStealth = true;
                 }
             } else if (IsEnabled && !RemainActive(elapsedTime))
             {
@@ -106,5 +109,6 @@ namespace Combat.Component.Systems.Devices
 
         private float _opacity = 1.0f;
         private readonly bool _invulnerability;
+        private readonly IShip _ship;
     }
 }

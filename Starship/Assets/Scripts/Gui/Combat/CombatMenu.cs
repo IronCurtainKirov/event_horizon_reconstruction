@@ -27,7 +27,7 @@ namespace Gui.Combat
 
         public void InitializeWindow()
         {
-            _nextEnemyButton.gameObject.SetActive(_manager.CanCallNextEnemy());
+            _nextEnemyButton.gameObject.SetActive(/*_manager.CanCallNextEnemy()*/false);
             _nextEnemyButton.interactable = true;
             _changeShipButton.gameObject.SetActive(_manager.CanChangeShip());
         }

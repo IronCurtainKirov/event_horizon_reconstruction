@@ -38,6 +38,10 @@ namespace Gui.Combat
             if (ship.IsActive() && GetComponent<IWindow>().IsVisible)
                 Initialize(ship);
         }
+        public void Unload()
+        {
+            Load(null);
+        }
 
         public void OnJoystickPressed(Vector2 direction)
         {
@@ -65,19 +69,26 @@ namespace Gui.Combat
 
         public void OnLeftPressed()
         {
-            _leftPressed = true;
+            //_leftPressed = true;
+            if (_ship.IsActive())
+                _ship.Controls.HorizontalThrottle = -1;
         }
 
         public void OnRightPressed()
         {
-            _rightPressed = true;
+            //_rightPressed = true;
+            if (_ship.IsActive())
+                _ship.Controls.HorizontalThrottle = 1;
         }
 
         public void OnLeftRightReleased()
         {
-            _rightPressed = _leftPressed = false;
+            //_rightPressed = _leftPressed = false;
             if (_ship.IsActive())
-                _ship.Controls.Course = null;
+            {
+                //_ship.Controls.Course = null;
+                _ship.Controls.HorizontalThrottle = 0;
+            }
         }
 
         public void ActivateSystem(int id)
@@ -128,8 +139,8 @@ namespace Gui.Combat
         {
             _ship = ship;
             _joystickDirection = Vector2.zero;
-            _leftPressed = false;
-            _rightPressed = false;
+            //_leftPressed = false;
+            //_rightPressed = false;
             _activeButtons = 0;
 
             var buttons = new Dictionary<string, RectTransform>();
@@ -226,11 +237,29 @@ namespace Gui.Combat
             if (_joystickDirection != Vector2.zero)
             {
                 var rotation = RotationHelpers.Angle(_joystickDirection);
-                _ship.Controls.Course = rotation;
+                var deltaAngle = Mathf.Abs(Mathf.DeltaAngle(_ship.Body.Rotation, rotation));
+                if (deltaAngle <= 150)
+                    _ship.Controls.Course = rotation;
                 if (_thrustWithJoystick && !(_stopWhenWeaponActive && _activeButtons > 0))
-                    _ship.Controls.Throttle = Mathf.Abs(Mathf.DeltaAngle(_ship.Body.Rotation, rotation)) < 30 ? Mathf.Clamp01(_joystickDirection.magnitude * 2) : 0f;
+                {
+                    if (deltaAngle < 30)
+                    {
+                        _ship.Controls.Throttle = Mathf.Clamp01(_joystickDirection.magnitude * 2);
+                        _ship.Controls.BackwardThrottle = 0;
+                    }
+                    else if (deltaAngle > 150)
+                    {
+                        _ship.Controls.BackwardThrottle = Mathf.Clamp01(_joystickDirection.magnitude * 2);
+                        _ship.Controls.Throttle = 0;
+                    }
+                    else
+                    {
+                        _ship.Controls.Throttle = 0;
+                        _ship.Controls.BackwardThrottle = 0;
+                    }
+                }
             }
-
+            /*
             if (_leftPressed)
             {
                 _ship.Controls.Course = _ship.Body.Rotation + 175;
@@ -240,7 +269,7 @@ namespace Gui.Combat
             {
                 _ship.Controls.Course = _ship.Body.Rotation - 175;
             }
-
+            */
             for (int i = 0; i < _keyBindings.Count; ++i)
             {
                 var item = _cooldowns[i];
@@ -289,8 +318,8 @@ namespace Gui.Combat
         private List<ButtonCooldown> _cooldowns;
 
         private int _activeButtons;
-        private bool _leftPressed;
-        private bool _rightPressed;
+        //private bool _leftPressed;
+        //private bool _rightPressed;
         private Vector2 _joystickDirection;
 
         private bool _slideToMove;

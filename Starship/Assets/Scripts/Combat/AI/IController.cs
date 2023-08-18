@@ -6,6 +6,8 @@ namespace Combat.Ai
     {
 	    void Update(float deltaTime);
 	    bool IsAlive { get; }
+        bool ControllerChangeToAi { get; }
+        bool ControllerChangeToPlayer { get; }
     }
 
     public interface IControllerFactory

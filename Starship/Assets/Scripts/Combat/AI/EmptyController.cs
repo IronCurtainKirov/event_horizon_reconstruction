@@ -12,8 +12,10 @@ namespace Combat.Ai
 
 	    public void Update(float deltaTime) {}
 	    public bool IsAlive { get { return _ship.IsActive(); } }
+        public bool ControllerChangeToAi { get { return false; } }
+        public bool ControllerChangeToPlayer { get { return false; } }
 
-	    private readonly IShip _ship;
+        private readonly IShip _ship;
 
         public class Factory : IControllerFactory
         {

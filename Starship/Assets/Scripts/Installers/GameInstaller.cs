@@ -70,6 +70,8 @@ namespace Installers
             Container.BindTrigger<ShipCreatedSignal.Trigger>();
             Container.BindSignal<ShipDestroyedSignal>();
             Container.BindTrigger<ShipDestroyedSignal.Trigger>();
+            Container.BindSignal<PlayerShipChangedSignal>();
+            Container.BindTrigger<PlayerShipChangedSignal.Trigger>();
 
             Container.Bind<Cheats>();
             Container.Bind<GuiHelper>();
@@ -299,6 +301,8 @@ namespace Installers
             Container.BindTrigger<ShipCreatedSignal.Trigger>();
             Container.BindSignal<ShipDestroyedSignal>();
             Container.BindTrigger<ShipDestroyedSignal.Trigger>();
+            Container.BindSignal<PlayerShipChangedSignal>();
+            Container.BindTrigger<PlayerShipChangedSignal.Trigger>();
 
             BindDatabase();
             BindStateMachine();

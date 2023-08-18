@@ -35,6 +35,7 @@ namespace Combat.Component.Stats
         }
 
         public bool IsAlive { get { return _armorPoints.Value > 0; } }
+        public bool IsStealth { get; set; }
 
         public IResourcePoints Armor { get { return _armorPoints; } }
         public IResourcePoints Shield { get { return _shieldPoints; } }

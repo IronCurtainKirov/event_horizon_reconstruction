@@ -13,7 +13,7 @@ namespace Combat.Ai
 
         public static void UseDefenseSystems(this StrategyBase strategy, IShip ship, int level)
         {
-            if (level > 60)
+            //if (level > 60)
             {
                 for (var i = 0; i < ship.Systems.All.Count; i++)
                 {
@@ -48,7 +48,7 @@ namespace Combat.Ai
                         new HasThreatsCondition(0.5f)
                         ), new ShieldAction(i));
 
-                if (level > 50)
+                //if (level > 50)
                 {
                     if (device is GhostDevice)
                     {

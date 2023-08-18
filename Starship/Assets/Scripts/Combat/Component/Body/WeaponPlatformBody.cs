@@ -38,6 +38,7 @@ namespace Combat.Component.Platform
         public float Scale => _scale;
 
         public void Move(Vector2 position) { }
+        public void SetVelocity(Vector2 velocity) { }
         public void Turn(float rotation) { }
         public void ApplyAcceleration(Vector2 acceleration) { }
         public void ApplyAngularAcceleration(float acceleration) { }

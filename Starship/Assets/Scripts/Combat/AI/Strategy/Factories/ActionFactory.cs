@@ -12,9 +12,9 @@ namespace Combat.Ai
 			switch (weapon.Info.BulletType)
 			{
 			case BulletType.Projectile:
-                if (weapon.Info.WeaponType == WeaponType.Manageable)
-                    return new ProjectileAttackAction(weaponIndex);
-                return level < 100 ? (IAction)(new DirectAttackAction(weaponIndex)) : (IAction)(new ProjectileAttackAction(weaponIndex));
+                //if (weapon.Info.WeaponType == WeaponType.Manageable)
+                //    return new ProjectileAttackAction(weaponIndex);
+                return /*level < 100 ? new DirectAttackAction(weaponIndex) : */new ProjectileAttackAction(weaponIndex);
 			case BulletType.Homing:
 				return new HomingAttackAction(weaponIndex);
 			case BulletType.Direct:

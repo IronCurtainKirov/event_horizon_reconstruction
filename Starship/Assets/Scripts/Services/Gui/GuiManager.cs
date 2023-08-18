@@ -17,12 +17,14 @@ namespace Services.Gui
             SceneLoadedSignal sceneLoadedSignal,
             WindowOpenedSignal windowOpenedSignal,
             WindowClosedSignal windowClosedSignal,
-            EscapeKeyPressedSignal.Trigger escapeKeyPressedTrigger)
+            EscapeKeyPressedSignal.Trigger escapeKeyPressedTrigger,
+            SpaceKeyPressedSignal.Trigger spaceKeyPressedTrigger)
         {
             _sceneLoadedSignal = sceneLoadedSignal;
             _windowOpenedSignal = windowOpenedSignal;
             _windowClosedSignal = windowClosedSignal;
             _escapeKeyPressedTrigger = escapeKeyPressedTrigger;
+            _spaceKeyPressedTrigger = spaceKeyPressedTrigger;
 
             _sceneLoadedSignal.Event += OnSceneLoaded;
             _windowOpenedSignal.Event += OnWindowOpened;
@@ -306,6 +308,7 @@ namespace Services.Gui
         private readonly WindowOpenedSignal _windowOpenedSignal;
         private readonly WindowClosedSignal _windowClosedSignal;
         private readonly EscapeKeyPressedSignal.Trigger _escapeKeyPressedTrigger;
+        private readonly SpaceKeyPressedSignal.Trigger _spaceKeyPressedTrigger;
 
         public void Tick()
         {
@@ -325,6 +328,10 @@ namespace Services.Gui
                 else
                     _escapeKeyPressedTrigger.Fire();
             }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _spaceKeyPressedTrigger.Fire();
+            }
         }
     }
 
@@ -339,6 +346,10 @@ namespace Services.Gui
     }
 
     public class EscapeKeyPressedSignal : SmartWeakSignal
+    {
+        public class Trigger : TriggerBase { }
+    }
+    public class SpaceKeyPressedSignal : SmartWeakSignal
     {
         public class Trigger : TriggerBase { }
     }

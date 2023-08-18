@@ -19,6 +19,7 @@ namespace Combat.Component.Body
         float Scale { get; }
 
         void Move(Vector2 position);
+        void SetVelocity(Vector2 velocity);
         void Turn(float rotation);
         void SetSize(float size);
         void ApplyAcceleration(Vector2 acceleration);

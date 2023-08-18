@@ -2,12 +2,12 @@
 {
     public enum WindowClass
     {
-        HudElement,
-        TopLevel,
-        Singleton,
+        HudElement,//自动打开
+        TopLevel,//覆盖自身，关闭其他并禁止其他打开（除Balloon、ModalDialog）
+        Singleton,//自动打开；覆盖自身并关闭Level2
         Level2,
-        ModalDialog,
-        Balloon,
+        ModalDialog,//存在时禁止打开其他（除Balloon）；不存在自身时强制打开；强制不被关闭 【类似TopLevel，但优先级更高】
+        Balloon,//强制打开；强制不被关闭；覆盖原有Balloon 【唯一；独立于其他】
     }
 
     public static class WindowClassExtensions

@@ -48,7 +48,7 @@ namespace Combat.Unit.Ship.Effects.Special
             else
             {
                 _triggers.Invoke(ConditionType.OnDeactivate);
-                ship.Vanish();
+                //ship.Vanish();
             }
         }
 

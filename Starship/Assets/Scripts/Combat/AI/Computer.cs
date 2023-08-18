@@ -12,9 +12,10 @@ namespace Combat.Ai
 			_ship = ship;
 			_level = level;
 		    _scene = scene;
-		    _autopilotMode = autopilotMode;
+			_order = _ship.Order;
+            _autopilotMode = autopilotMode;
             _attackRange = Helpers.ShipMaxRange(_ship);
-            _targets = new TargetList(_scene, ship.Type.Side == UnitSide.Player);
+            _targets = new TargetList(_scene, ship.Type.Side == UnitSide.Player || ship.Type.Side == UnitSide.Ally);
             _threats = new ThreatList(_scene);
 
 		    if (autopilotMode)
@@ -22,8 +23,10 @@ namespace Combat.Ai
 		}
 
 		public bool IsAlive { get { return _ship.IsActive(); } }
+        public bool ControllerChangeToAi { get { return false; } }
+        public bool ControllerChangeToPlayer { get { return _ship.ControllerChangeToPlayer(); } }
 
-		public void Update(float deltaTime)
+        public void Update(float deltaTime)
 		{
 		    if (_autopilotMode)
 		    {
@@ -50,7 +53,7 @@ namespace Combat.Ai
 
 			_threats.Update(deltaTime, _ship, strategy);
 		    _targets.Update(deltaTime, _ship, enemy);
-			var context = new Context(_ship, enemy, _targets, _threats, _currentTime);
+			var context = new Context(_ship, enemy, _scene.AvoidShipList, _targets, _threats, _currentTime);
 
 			strategy.Apply(context);
 		    _ship.Controls.DataChanged = false;
@@ -71,8 +74,8 @@ namespace Combat.Ai
 		{
 		    if (!_enemy.IsActive())
 		        return null;//_strategy = _ship.Type.Side == UnitSide.Player ? new CollectLoot() : null;
-		    if (_level < 0)
-		        return null;
+		    //if (_level < 0)
+		    //    return null;
 
 			if (_strategy != null && _strategyUpdateCooldown > 0)
 				return _strategy;
@@ -86,19 +89,42 @@ namespace Combat.Ai
 
 		private IShip GetEnemy()
 		{
-			if (_enemy.IsActive() && _enemyUpdateCooldown > 0)
+            /*
+			if (_order.Enemy.IsActive())
+                return _enemy = _order.Enemy;
+			if (_order.FollowShip.IsActive())
+				return _enemy = _scene.Ships.GetEnemy(_order.FollowShip, _scene, 0, _attackRange, 360, true, true, true);
+
+            if (_enemy.IsActive() && _enemyUpdateCooldown > 0)
 				return _enemy;
 
 			_enemyUpdateCooldown = EnemyUpdateInterval;
 
-			var newEnemy = _scene.Ships.GetEnemy(_ship, 0, _attackRange, 360, true, true);
+			var newEnemy = _scene.Ships.GetEnemy(_ship, _scene, 0, _attackRange, 360, true, true, true);
+			if (newEnemy != _enemy)
+				_strategy = null;
+
+			return _enemy = newEnemy;*/
+
+			IShip newEnemy;
+            if (_order.Enemy.IsActive())
+                newEnemy = _order.Enemy;
+			else if (_order.FollowShip.IsActive())
+                newEnemy = _scene.Ships.GetEnemy(_order.FollowShip, _scene, 0, _attackRange, 360, true, true, true);
+            else if (_enemy.IsActive() && _enemyUpdateCooldown > 0)
+				return _enemy;
+			else
+                newEnemy = _scene.Ships.GetEnemy(_ship, _scene, 0, _attackRange, 360, true, true, true);
+
+            _enemyUpdateCooldown = EnemyUpdateInterval;
+
 			if (newEnemy != _enemy)
 				_strategy = null;
 
 			return _enemy = newEnemy;
-		}
+        }
 
-		private IShip _enemy;
+        private IShip _enemy;
 		private float _enemyUpdateCooldown;
 		private float _strategyUpdateCooldown;
 		private float _currentTime;
@@ -111,7 +137,8 @@ namespace Combat.Ai
 		private readonly int _level;
  		private readonly IShip _ship;
 	    private readonly IScene _scene;
-		private const float EnemyUpdateInterval = 5.0f;
+        private readonly IOrder _order;
+        private const float EnemyUpdateInterval = 5.0f;
 		private const float StrategyUpdateInterval = 10.0f;
 	    private const float AutoPilotDelay = 2.0f;
 

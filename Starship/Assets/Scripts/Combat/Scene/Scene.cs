@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Combat.Component.Body;
 using Combat.Component.Ship;
 using Combat.Component.Unit;
@@ -15,6 +16,7 @@ namespace Combat.Scene
     {
         [Inject] private readonly ShipCreatedSignal.Trigger _shipCreatedTrigger;
         [Inject] private readonly ShipDestroyedSignal.Trigger _shipDestroyedTrigger;
+        [Inject] private readonly PlayerShipChangedSignal.Trigger _playerShipChangedTrigger;
 
         [Inject]
         public Scene(GameSettings gameSettings, SceneSettings settings, IViewRect viewRect)
@@ -29,6 +31,8 @@ namespace Combat.Scene
 
             _unitList.UnitAdded += OnUnitAdded;
             _unitList.UnitRemoved += OnUnitRemoved;
+
+            CombatSize = new Vector2(settings.AreaWidth, settings.AreaHeight);
         }
 
         public SceneSettings Settings => _settings;
@@ -40,8 +44,10 @@ namespace Combat.Scene
 
         public IUnitList<IShip> Ships => _shipList;
         public IUnitList<IUnit> Units => _unitList;
+        public List<IShip> AvoidShipList { get { return _avoidShipList; } }
 
         public Vector2 ViewPoint => _viewRect.Center;
+        public Vector2 CombatSize;
 
         public Rect ViewRect
         {
@@ -57,13 +63,15 @@ namespace Combat.Scene
 
         public IShip PlayerShip => _activePlayerShip;
         public IShip EnemyShip => _nearestEnemyShip;
-        
+        public bool Initialized => _initialized;
+        public bool HasChosenShip => _hasChosenShip;
+
         public void Tick()
         {
             _unitList.UpdateCollection();
             _unitList.UpdateItems(UpdateUnitView);
 
-            _viewRect.Update(_activePlayerShip, _nearestEnemyShip, _playerInCenter);
+            _viewRect.Update(_activePlayerShip, _nearestEnemyShip, _playerInCenter, CombatSize);
             _disturbance *= 1 - 2 * Time.unscaledDeltaTime;
         }
 
@@ -75,6 +83,16 @@ namespace Combat.Scene
 
             _lastUpdateTime = Time.fixedTime;
         }
+
+        public void ChangeActivePlayerShip(IShip ship)
+        {
+            _activePlayerShip = ship;
+            _playerShipChangedTrigger.Fire(ship);
+            if (!_initialized) _viewRect.Zoom();
+        }
+        public void Initialize() { _initialized = true; }
+        public void RechoseShip() { _hasChosenShip = false; }
+        public void ChoseShipDone() { _hasChosenShip = true; }
 
         private Vector2 RandomPoint(Vector2 center)
         {
@@ -133,6 +151,14 @@ namespace Combat.Scene
             return targetPos;
         }
 
+        public Vector2 FindShipPosition(float count, UnitSide unitSide)
+        {
+            var scaleFactor = (float)Math.Ceiling(count / 2f) - 0.5f;
+            var offset = _settings.AreaWidth * 0.04f * (float)Math.Pow(-1, count);
+            var position = new Vector2(offset * scaleFactor, unitSide == UnitSide.Enemy ? _settings.AreaHeight * 0.4f : -_settings.AreaHeight * 0.4f);
+            return position;
+        }
+
         public void Shake(float amplitude)
         {
             _disturbance = Mathf.Max(_disturbance, amplitude);
@@ -169,9 +195,9 @@ namespace Combat.Scene
                 switch (ship.Type.Side)
                 {
                     case UnitSide.Player:
-                        if (!_activePlayerShip.IsActive())
+                        /*if (!_activePlayerShip.IsActive())
                             _activePlayerShip = ship;
-                        _viewRect.Zoom();
+                        _viewRect.Zoom();*/
                         break;
                     case UnitSide.Enemy:
                         if (!_nearestEnemyShip.IsActive())
@@ -224,7 +250,49 @@ namespace Combat.Scene
 
         private void CheckBounds()
         {
-            if (_activePlayerShip == null)
+            lock (_unitList.LockObject)
+            {
+                foreach (var unit in _unitList.Items)
+                {
+                    var position = unit.Body.Position;
+                    var velocity = unit.Body.Velocity;
+                    bool critical = false;
+
+                    if (position.x > _settings.AreaWidth / 2)
+                    {
+                        position.x = _settings.AreaWidth / 2;
+                        velocity.x = 0;
+                        critical = true;
+                    }
+                    if (position.x < -_settings.AreaWidth / 2)
+                    {
+                        position.x = -_settings.AreaWidth / 2 ;
+                        velocity.x = 0;
+                        critical = true;
+                    }
+                    if (position.y > _settings.AreaHeight / 2)
+                    {
+                        position.y = _settings.AreaHeight / 2;
+                        velocity.y = 0;
+                        critical = true;
+                    }
+                    if (position.y < -_settings.AreaHeight / 2)
+                    {
+                        position.y = -_settings.AreaHeight / 2;
+                        velocity.y = 0;
+                        critical = true;
+                    }
+                    if (critical)
+                    {
+                        unit.Body.Move(position);
+                        unit.Body.SetVelocity(velocity);
+
+                    }
+                }
+            }
+
+
+            /*if (_activePlayerShip == null)
                 return;
 
             if (_cooldown > 0)
@@ -288,7 +356,7 @@ namespace Combat.Scene
                         unit.Body.ShiftWithDependants(offset + extraOffset);
                     }
                 }
-            }
+            }*/
         }
 
         private float _cooldown;
@@ -296,6 +364,8 @@ namespace Combat.Scene
         private float _lastUpdateTime;
 
         private bool _playerInCenter;
+        private bool _initialized = false;
+        private bool _hasChosenShip = false;
         private IShip _activePlayerShip;
         private IShip _nearestEnemyShip;
         private UnityEngine.Camera _mainCamera;
@@ -304,6 +374,7 @@ namespace Combat.Scene
 
         private readonly UnitList<IUnit> _unitList = new UnitList<IUnit>();
         private readonly ShipList _shipList = new ShipList();
+        private readonly List<IShip> _avoidShipList = new List<IShip>();
 
         private readonly IViewRect _viewRect;
         private readonly SceneSettings _settings;

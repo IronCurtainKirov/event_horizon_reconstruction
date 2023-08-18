@@ -12,15 +12,17 @@ namespace Combat.Domain
 {
     public class CombatModel : ICombatModel
     {
-        public CombatModel(FleetModel playerFleet, FleetModel enemyFleet, ShipCreatedSignal shipCreatedSignal, ShipDestroyedSignal shipDestroyedSignal)
+        public CombatModel(FleetModel playerFleet, FleetModel enemyFleet, ShipCreatedSignal shipCreatedSignal, ShipDestroyedSignal shipDestroyedSignal, PlayerShipChangedSignal playerShipChangedSignal)
         {
             _playerFleet = playerFleet;
             _enemyFleet = enemyFleet;
 
             _shipCreatedSignal = shipCreatedSignal;
             _shipDestroyedSignal = shipDestroyedSignal;
+            _playerShipChangedSignal = playerShipChangedSignal;
             _shipCreatedSignal.Event += OnShipCreated;
             _shipDestroyedSignal.Event += OnShipDestroyed;
+            _playerShipChangedSignal.Event += OnPlayerShipChanged;
         }
 
         public CombatRules Rules { get; set; }
@@ -46,9 +48,11 @@ namespace Combat.Domain
         private void OnShipDestroyed(Component.Ship.IShip ship)
         {
             IShipInfo shipInfo;
-            if (ship.Type.Class == UnitClass.Ship && ship.Type.Side == UnitSide.Player && _playerFleet.TryGetInfo(ship, out shipInfo))
+            if (ship.Type.Class == UnitClass.Ship && (ship.Type.Side == UnitSide.Player || ship.Type.Side == UnitSide.Ally) && _playerFleet.TryGetInfo(ship, out shipInfo))
                 UpdateExperienceData(shipInfo);
         }
+
+        private void OnPlayerShipChanged(Component.Ship.IShip ship) {}
 
         private void UpdateExperienceData(IShipInfo ship)
         {
@@ -73,5 +77,6 @@ namespace Combat.Domain
         private readonly Dictionary<IShip, long> _playerExperienceData = new Dictionary<IShip, long>();
         private readonly ShipCreatedSignal _shipCreatedSignal;
         private readonly ShipDestroyedSignal _shipDestroyedSignal;
+        private readonly PlayerShipChangedSignal _playerShipChangedSignal;
     }
 }

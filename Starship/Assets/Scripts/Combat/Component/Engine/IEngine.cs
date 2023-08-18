@@ -12,6 +12,9 @@ namespace Combat.Component.Engine
 
         float? Course { get; set; }
         float Throttle { get; set; }
+        float BackwardThrottle { get; set; }
+        float HorizontalThrottle { get; set; }
+        float Deceleration { get; set; }
 
         Modifications<EngineData> Modifications { get; }
 

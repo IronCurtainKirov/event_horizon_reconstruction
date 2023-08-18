@@ -57,6 +57,8 @@ namespace Installers
             Container.BindTrigger<WindowClosedSignal.Trigger>();
             Container.BindSignal<EscapeKeyPressedSignal>();
             Container.BindTrigger<EscapeKeyPressedSignal.Trigger>();
+            Container.BindSignal<SpaceKeyPressedSignal>();
+            Container.BindTrigger<SpaceKeyPressedSignal.Trigger>();
 
             Container.BindAllInterfacesAndSelf<IObjectPool>().To<GameObjectPool>().FromGameObject().AsSingle();
             Container.Bind<GameObjectFactory>();
@@ -142,6 +144,8 @@ namespace Installers
             Container.BindTrigger<WindowClosedSignal.Trigger>();
             Container.BindSignal<EscapeKeyPressedSignal>();
             Container.BindTrigger<EscapeKeyPressedSignal.Trigger>();
+            Container.BindSignal<SpaceKeyPressedSignal>();
+            Container.BindTrigger<SpaceKeyPressedSignal.Trigger>();
 
             Container.Bind<ILevelLoader>().To<LevelLoader>().AsSingle();
             Container.BindSignal<SceneBeforeUnloadSignal>();

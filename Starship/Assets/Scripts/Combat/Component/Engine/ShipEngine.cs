@@ -45,6 +45,9 @@ namespace Combat.Component.Engine
         }
 
         public float Throttle { get { return _engineData.Throttle; } set { _engineData.Throttle = value; } }
+        public float BackwardThrottle { get { return _engineData.BackwardThrottle; } set { _engineData.BackwardThrottle = value; } }
+        public float HorizontalThrottle { get { return _engineData.HorizontalThrottle; } set { _engineData.HorizontalThrottle = value; } }
+        public float Deceleration { get { return _engineData.Deceleration; } set { _engineData.Deceleration = value; } }
 
         public Modifications<EngineData> Modifications { get { return _modifications; } }
 
@@ -52,9 +55,9 @@ namespace Combat.Component.Engine
         {
             UpdateData();
 
-            if (Throttle > 0.01f)
+            if (Throttle > 0.01f || BackwardThrottle > 0.01f || Mathf.Abs(HorizontalThrottle) > 0.01f)
                 ApplyAcceleration(body, elapsedTime);
-            if (_engineData.Deceleration > 0)
+            if (Deceleration > 0)
                 ApplyDeceleration(body, elapsedTime);
 
             if (_engineData.HasCourse)
@@ -69,7 +72,7 @@ namespace Combat.Component.Engine
             _engineData.Velocity = _velocity;
             _engineData.TurnRate = _turnRate;
             _engineData.Propulsion = _propulsion;
-            _engineData.Deceleration = 0;
+            //_engineData.Deceleration = 0;
 
             _modifications.Apply(ref _engineData);
 
@@ -89,10 +92,28 @@ namespace Combat.Component.Engine
 
             var extraAcceleration = Mathf.Min(Propulsion * _extraAccelerationScale, _extraAccelerationMax);
             var maxPropulsion = Propulsion + extraAcceleration;
-            var forwardAcceleration = Throttle * CalculateAcceleration(forwardVelocity, MaxVelocity*0.1f, MaxVelocity, _maxVelocity, Propulsion, extraAcceleration);
-            var sideAcceleration = Mathf.Clamp(-sideVelocity, -maxPropulsion, maxPropulsion) * Throttle;
 
-            if (forwardAcceleration < 0.01f && sideAcceleration < 0.01f && sideAcceleration > -0.01f)
+            float forwardAcceleration;
+            float sideAcceleration;
+            if (Mathf.Abs(HorizontalThrottle) > 0.01f)
+            {
+                forwardAcceleration = Mathf.Clamp(-forwardVelocity, -maxPropulsion, maxPropulsion) * Throttle;
+                sideAcceleration = HorizontalThrottle * CalculateHorizontalAcceleration(sideVelocity, MaxVelocity, Propulsion, HorizontalThrottle > 0);
+            }
+            else if (BackwardThrottle > 0.01f)
+            {
+                forwardAcceleration = -BackwardThrottle * CalculateAcceleration(forwardVelocity, MaxVelocity * 0.1f, MaxVelocity * 0.5f, _maxVelocity * 0.5f,
+                    Propulsion, extraAcceleration, false);
+                sideAcceleration = Mathf.Clamp(-sideVelocity, -maxPropulsion, maxPropulsion) * BackwardThrottle;
+            }
+            else
+            {
+                forwardAcceleration = Throttle * CalculateAcceleration(forwardVelocity, MaxVelocity * 0.1f, MaxVelocity, _maxVelocity,
+                    Propulsion, extraAcceleration, true);
+                sideAcceleration = Mathf.Clamp(-sideVelocity, -maxPropulsion, maxPropulsion) * Throttle;
+            }
+
+            if (forwardAcceleration < 0.01f && forwardAcceleration > -0.01f && sideAcceleration < 0.01f && sideAcceleration > -0.01f)
                 return;
 
             var sqrMagnitude = (forwardAcceleration*forwardAcceleration + sideAcceleration*sideAcceleration) / (maxPropulsion*maxPropulsion);
@@ -113,7 +134,7 @@ namespace Combat.Component.Engine
                 return;
 
             var direction = velocity.normalized;
-            body.ApplyAcceleration(-_engineData.Deceleration*elapsedTime*direction);
+            body.ApplyAcceleration(-Deceleration * elapsedTime*direction);
         }
 
         private void ApplyAngularAcceleration(IBody body, float elapsedTime)
@@ -157,30 +178,92 @@ namespace Combat.Component.Engine
             body.ApplyAngularAcceleration(acceleration);
         }
 
-        private static float CalculateAcceleration(float velocity, float minVelocity, float targetVelocity, float maxVelocity, float maxAcceleration, float extraAcceleration)
+        private static float CalculateAcceleration(float velocity, float minVelocity, float targetVelocity, float maxVelocity,
+            float maxAcceleration, float extraAcceleration, bool isForward)
         {
-            if (velocity >= maxVelocity)
-                return 0f;
-
-            if (maxAcceleration < 0.01f)
-                return 0f;
-
-            if (velocity < 0)
-                return 2 * maxAcceleration;
-
-            if (velocity < minVelocity)
+            if (isForward)
             {
-                var scale = (minVelocity - velocity) / minVelocity;
-                return maxAcceleration + extraAcceleration * scale * scale;
+                if (velocity >= maxVelocity)
+                    return 0f;
+
+                if (maxAcceleration < 0.01f)
+                    return 0f;
+
+                if (velocity < 0)
+                    return 2 * maxAcceleration;
+
+                if (velocity < minVelocity)
+                {
+                    var scale = (minVelocity - velocity) / minVelocity;
+                    return maxAcceleration + extraAcceleration * scale * scale;
+                }
+
+                if (velocity <= targetVelocity)
+                    return maxAcceleration;
+
+                if (velocity < maxVelocity - 0.01f)
+                {
+                    var scale = 0.1f * (maxVelocity - velocity) / (maxVelocity - targetVelocity);
+                    return (maxAcceleration + extraAcceleration) * scale;
+                }
             }
-
-            if (velocity <= targetVelocity)
-                return maxAcceleration;
-
-            if (velocity < maxVelocity - 0.01f)
+            else
             {
-                var scale = 0.1f * (maxVelocity - velocity) / (maxVelocity - targetVelocity);
-                return (maxAcceleration + extraAcceleration) * scale;
+                if (velocity <= -maxVelocity)
+                    return 0f;
+
+                if (maxAcceleration < 0.01f)
+                    return 0f;
+
+                if (velocity > 0)
+                    return 2 * maxAcceleration;
+
+                if (velocity > -minVelocity)
+                {
+                    var scale = (minVelocity + velocity) / minVelocity;
+                    return maxAcceleration + extraAcceleration * scale * scale;
+                }
+
+                if (velocity >= -targetVelocity)
+                    return maxAcceleration;
+
+                if (velocity > -maxVelocity + 0.01f)
+                {
+                    var scale = 0.1f * (maxVelocity + velocity) / (maxVelocity - targetVelocity);
+                    return (maxAcceleration + extraAcceleration) * scale;
+                }
+            }
+            
+            return 0f;
+        }
+
+        private static float CalculateHorizontalAcceleration(float velocity, float maxVelocity, float maxAcceleration, bool isRight)
+        {
+            if (isRight)
+            {
+                if (velocity >= maxVelocity)
+                    return 0f;
+
+                if (maxAcceleration < 0.01f)
+                    return 0f;
+
+                if (velocity < maxVelocity - 0.01f)
+                {
+                    return maxAcceleration;
+                }
+            }
+            else
+            {
+                if (velocity <= -maxVelocity)
+                    return 0f;
+
+                if (maxAcceleration < 0.01f)
+                    return 0f;
+
+                if (velocity > -maxVelocity + 0.01f)
+                {
+                    return maxAcceleration;
+                }
             }
 
             return 0f;

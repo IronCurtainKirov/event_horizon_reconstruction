@@ -1,4 +1,5 @@
-﻿using Combat.Collision;
+﻿using Combat.Ai;
+using Combat.Collision;
 using Combat.Collision.Behaviour;
 using Combat.Collision.Manager;
 using Combat.Component.Body;
@@ -16,6 +17,7 @@ using Combat.Component.Unit.Classification;
 using Combat.Component.View;
 using Combat.Unit;
 using Constructor;
+using Gui.Combat;
 using UnityEngine;
 
 namespace Combat.Component.Unit
@@ -68,6 +70,10 @@ namespace Combat.Component.Unit
         public IShipSystems Systems { get { return null; } }
         public IShipEffects Effects { get { return null; } }
         public IShipSpecification Specification { get { return null; } }
+        public IOrder Order { get { return null; } }
+        public MapIcon MapIcon { get { return null; } }
+        public bool ControllerChangeToAi { get { return false; } }
+        public bool ControllerChangeToPlayer { get { return false; } }
 
         public void Affect(Impact impact)
         {
@@ -83,6 +89,7 @@ namespace Combat.Component.Unit
         public void AddPlatform(IWeaponPlatform platform) {}
         public void AddSystem(ISystem system) {}
         public void AddEffect(IShipEffect shipEffect) {}
+        public void AddMapIcon(MapIcon mapIcon) { }
 
         public override void Vanish()
         {
@@ -94,7 +101,10 @@ namespace Combat.Component.Unit
             _elapsedTime = _lifetime;
             InvokeTriggers(ConditionType.OnDestroy);
         }
-    
+        public void ChangeControllerToAi() {}
+        public void ChangeControllerToPlayer() {}
+        public void RemoveControllerChangingMark() {}
+
         private float _elapsedTime;
         private float _hitPoints;
         private readonly float _lifetime;

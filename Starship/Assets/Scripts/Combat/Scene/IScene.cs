@@ -13,12 +13,20 @@ namespace Combat.Scene
 
         IUnitList<IShip> Ships { get; }
         IUnitList<IUnit> Units { get; }
+        List<IShip> AvoidShipList { get; }
 
         IShip PlayerShip { get; }
         IShip EnemyShip { get; }
+        bool Initialized { get; }
+        bool HasChosenShip { get; }
 
         Vector2 FindFreePlace(float minDistance, UnitSide unitSide);
+        Vector2 FindShipPosition(float count, UnitSide side);
         void Shake(float amplitude);
+        void Initialize();
+        void RechoseShip();
+        void ChoseShipDone();
+        void ChangeActivePlayerShip(IShip ship);
 
         Vector2 ViewPoint { get; }
         Rect ViewRect { get; }
@@ -39,6 +47,10 @@ namespace Combat.Scene
     }
 
     public class ShipCreatedSignal : SmartWeakSignal<IShip>
+    {
+        public class Trigger : TriggerBase { }
+    }
+    public class PlayerShipChangedSignal : SmartWeakSignal<IShip>
     {
         public class Trigger : TriggerBase { }
     }

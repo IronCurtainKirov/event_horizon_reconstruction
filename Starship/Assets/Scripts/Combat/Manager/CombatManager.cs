@@ -22,6 +22,7 @@ using Services.ObjectPool;
 using Services.Reources;
 using Utils;
 using Zenject;
+using static Session.Content.FleetData;
 
 
 namespace Combat.Manager
@@ -43,8 +44,10 @@ namespace Combat.Manager
             _messenger = messenger;
 
             _messenger.AddListener(EventType.EscapeKeyPressed, OnEscapeKeyPressed);
+            _messenger.AddListener(EventType.SpaceKeyPressed, OnSpaceKeyPressed);
             _messenger.AddListener<IShip>(EventType.CombatShipCreated, OnShipCreated);
             _messenger.AddListener<IShip>(EventType.CombatShipDestroyed, OnShipDestroyed);
+            _messenger.AddListener<IShip>(EventType.PlayerShipChanged, OnPlayerShipChanged);
         }
 
         [Inject] private readonly IScene _scene;
@@ -60,10 +63,13 @@ namespace Combat.Manager
 
         [Inject] private readonly ShipSelectionPanel _shipSelectionPanel;
         [Inject] private readonly ShipStatsPanel _playerStatsPanel;
-        [Inject] private readonly ShipStatsPanel _enemyStatsPanel;
-        [Inject] private readonly CombatMenu _combatMenu;
+        //[Inject] private readonly ShipStatsPanel _enemyStatsPanel;
+        //[Inject] private readonly CombatMenu _combatMenu;
+        [Inject] private readonly ExitConfirmationDialog _exitConfirmationDialog;
         [Inject] private readonly Settings _settings;
         [Inject] private readonly RadarPanel _radarPanel;
+        [Inject] private readonly MapPanel _mapPanel;
+        [Inject] private readonly TimerPanel _timerPanel;
         [Inject] private readonly IKeyboard _lKeyboard;
         [Inject] private readonly ICombatModel _combatModel;
 
@@ -80,6 +86,25 @@ namespace Combat.Manager
 
             var level = Maths.Distance.ToShipLevel(_motherShip.CurrentStar.Level);
             var powerMultiplier = Experience.LevelToPowerMultiplier(Distance.ToShipLevel(level));
+
+            var playerShipsCount = 0f;
+            var enemyShipsCount = 0f;
+
+            foreach (var ship in _combatModel.PlayerFleet.Ships)
+            {
+                playerShipsCount++;
+                CreateShip(ship, playerShipsCount);
+            }
+            foreach (var ship in _combatModel.EnemyFleet.Ships)
+            {
+                enemyShipsCount++;
+                CreateShip(ship, enemyShipsCount);
+            }
+
+            _messenger.Broadcast(EventType.PlayerShipCountChanged,
+                _combatModel.PlayerFleet.CountNonStatus(ShipStatus.Destroyed));
+            _messenger.Broadcast(EventType.EnemyShipCountChanged,
+                _combatModel.EnemyFleet.CountNonStatus(ShipStatus.Destroyed));
 
             if (_combatModel.Rules.AsteroidsEnabled)
             {
@@ -111,30 +136,37 @@ namespace Combat.Manager
                 _spaceObjectFactory.CreatePlanet(position, size, color);
             }
 
+            _scene.Initialize();
+            _shipSelectionPanel.Open(_combatModel);
+            /*
             if (_combatModel.Rules.InitialEnemies > 1)
                 foreach (var ship in _combatModel.EnemyFleet.Ships.Where(item => item.Status == ShipStatus.Ready)
                              .Skip(1).Take(_combatModel.Rules.InitialEnemies - 1))
-                    CreateShip(ship);
+                    CreateShip(ship);*/
         }
 
         public void OnShipCreated(IShip ship)
         {
+            if (ship.Type.Class == UnitClass.Drone)
+            {
+                _mapPanel.Add(ship);
+                return;
+            }
+
             if (ship.Type.Class != UnitClass.Ship)
                 return;
 
-            CheckIfCanCallNextEnemy();
+            //CheckIfCanCallNextEnemy();
 
             switch (ship.Type.Side)
             {
                 case UnitSide.Player:
-                    _shipControlsPanel.Load(ship);
-                    _messenger.Broadcast(EventType.PlayerShipCountChanged,
-                        _combatModel.PlayerFleet.CountStatus(ShipStatus.Ready));
+                    _radarPanel.Add(ship);
+                    _mapPanel.Add(ship);
                     break;
                 case UnitSide.Enemy:
                     _radarPanel.Add(ship);
-                    _messenger.Broadcast(EventType.EnemyShipCountChanged,
-                        _combatModel.EnemyFleet.CountStatus(ShipStatus.Ready));
+                    _mapPanel.Add(ship);
                     break;
             }
         }
@@ -144,15 +176,33 @@ namespace Combat.Manager
             if (ship.Type.Class != UnitClass.Ship)
                 return;
 
-            CheckIfCanCallNextEnemy();
+            switch (ship.Type.Side)
+            {
+                case UnitSide.Player:
+                    _messenger.Broadcast(EventType.PlayerShipCountChanged,
+                        _combatModel.PlayerFleet.CountNonStatus(ShipStatus.Destroyed));
+                    break;
+                case UnitSide.Enemy:
+                    _messenger.Broadcast(EventType.EnemyShipCountChanged,
+                        _combatModel.EnemyFleet.CountNonStatus(ShipStatus.Destroyed));
+                    break;
+            }
+            //CheckIfCanCallNextEnemy();
         }
 
-        public void CreateShip(IShipInfo ship)
+        public void OnPlayerShipChanged(IShip ship)
         {
-            var position = _scene.FindFreePlace(40, ship.Side);
+            _shipControlsPanel.Unload();
+            _shipControlsPanel.Load(ship);
+        }
+
+        public void CreateShip(IShipInfo ship, float count)
+        {
+            //var position = _scene.FindFreePlace(40, ship.Side);
+            var position = _scene.FindShipPosition(count, ship.Side);
 
             var controllerFactory = ship.Side == UnitSide.Player
-                ? (IControllerFactory)new KeyboardController.Factory(_lKeyboard)
+                ? new Computer.Factory(_scene, _combatModel.PlayerFleet.Level)
                 : new Computer.Factory(_scene, _combatModel.EnemyFleet.Level);
 
             ship.Create(_shipFactory, controllerFactory, position);
@@ -163,12 +213,23 @@ namespace Combat.Manager
             //return shipModel;
         }
 
+        public void CreatAi(IShipInfo ship)
+        {
+            _aiManager.Add(new KeyboardController.Factory(_lKeyboard).Create(ship.ShipUnit));
+        }
+
         public bool IsGamePaused { get; private set; }
 
         public void OnEscapeKeyPressed()
         {
-            if (_combatMenu)
-                _combatMenu.Open();
+            //if (_combatMenu)
+            //    _combatMenu.Open();
+            _exitConfirmationDialog.Open();
+        }
+
+        public void OnSpaceKeyPressed()
+        {
+            //_timerPanel.PauseButtonClicked();  TODO:移除空格键的其他效果（1号位按键触发；触发上次点击的按键）
         }
 
         public void Surrender()
@@ -185,7 +246,7 @@ namespace Combat.Manager
 
         public bool CanChangeShip()
         {
-            return _combatModel.Rules.CanSelectShips && _playerSkills.HasRescueUnit &&
+            return /*_combatModel.Rules.CanSelectShips && _playerSkills.HasRescueUnit &&*/
                    _combatModel.PlayerFleet.IsAnyShipLeft();
         }
 
@@ -195,13 +256,25 @@ namespace Combat.Manager
             if (player.Effects.All.OfType<ShipRetreatEffect>().Any())
                 return;
 
-            var chargeEffect = new ShipRetreatingEffect(player, _effectFactory, ConditionType.OnActivate,
+            /*var chargeEffect = new ShipRetreatingEffect(player, _effectFactory, ConditionType.OnActivate,
                 ConditionType.OnDeactivate);
             var warpEffect = new ShipWarpEffect(player, _effectFactory, _soundPlayer, _settings.ShipWarpSound,
                 ConditionType.OnDeactivate);
             var soundEffect = new SoundLoopEffect(_soundPlayer, _settings.ShipRetreatSound, ConditionType.OnActivate,
-                ConditionType.OnDeactivate);
-            player.AddEffect(new ShipRetreatEffect(7.0f, soundEffect, warpEffect, chargeEffect));
+                ConditionType.OnDeactivate);*/
+            // player.AddEffect(new ShipRetreatEffect(0f, soundEffect, warpEffect, chargeEffect));
+
+            //foreach (var ship in _combatModel.PlayerFleet.Ships)
+            //    ship.ShipUnit.RemoveControllerChangingMark();
+            player.ChangeControllerToAi();
+
+            //player.Type.ChangeSide(UnitSide.Ally);
+            //foreach (var ship in _combatModel.PlayerFleet.Ships)
+            //{
+            //    ship.ChangeSide(UnitSide.Ally);
+            //}
+
+            _aiManager.Add(new Computer.Factory(_scene, _combatModel.PlayerFleet.Level).Create(player));
         }
 
         public void KillAllEnemies()
@@ -215,7 +288,7 @@ namespace Combat.Manager
         }
 
         public void CallNextEnemy()
-        {
+        {/*
             if (!CanCallNextEnemy())
                 return;
             _nextShipCooldown = 0;
@@ -225,7 +298,7 @@ namespace Combat.Manager
                 return;
 
             CreateShip(shipInfo);
-            _soundPlayer.Play(_settings.ReinforcementSound);
+            _soundPlayer.Play(_settings.ReinforcementSound);*/
         }
 
         private void CheckIfCanCallNextEnemy()
@@ -261,57 +334,43 @@ namespace Combat.Manager
         {
             var player = _scene.PlayerShip;
             var enemy = _scene.EnemyShip;
-
-            if (!enemy.IsActive())
+            
+            if (!_combatModel.EnemyFleet.IsAnyShipLeft())
             {
-                _nextShipCooldown += Time.deltaTime;
-                if (_nextShipCooldown > NextShipMaxCooldown)
-                {
-                    _nextShipCooldown = 0;
-
-                    var shipInfo =
-                        _combatModel.EnemyFleet.Ships.FirstOrDefault(item => item.Status == ShipStatus.Ready);
-                    if (shipInfo == null)
-                    {
-                        OptimizedDebug.Log("No more ships");
-                        Exit();
-                        return;
-                    }
-
-                    CreateShip(shipInfo);
-                }
+                OptimizedDebug.Log("No more ships");
+                Exit();
+                return;
             }
             else if (!player.IsActive())
             {
-                _nextPlayerShipCooldown += Time.deltaTime;
-                if (_nextPlayerShipCooldown > NextShipMaxCooldown)
+                if (!_combatModel.PlayerFleet.IsAnyShipLeft())
                 {
-                    _nextPlayerShipCooldown = 0;
-
-                    if (!_combatModel.PlayerFleet.IsAnyShipLeft())
-                    {
-                        OptimizedDebug.Log("No more ships");
-                        Exit();
-                    }
-                    else if (_combatModel.Rules.CanSelectShips)
-                    {
-                        _shipSelectionPanel.Open(_combatModel);
-                    }
-                    else
-                    {
-                        var shipInfo = _combatModel.PlayerFleet.AnyAvailableShip();
-                        CreateShip(shipInfo);
-                    }
+                    OptimizedDebug.Log("No more ships");
+                    Exit();
+                }/*
+                else if (_combatModel.Rules.CanSelectShips)
+                {
+                    _shipSelectionPanel.Open(_combatModel);
+                }*/
+                else
+                {
+                    //var shipInfo = _combatModel.PlayerFleet.AnyAvailableShip();
+                    //CreateShip(shipInfo);
+                    _shipSelectionPanel.Open(_combatModel);
                 }
+            }
+            else if (player.ControllerChangeToAi())
+            {
+                _shipSelectionPanel.Open(_combatModel);
             }
             else if (!IsGamePaused)
             {
                 _playerStatsPanel.Open(player);
-                _enemyStatsPanel.Open(enemy);
+                //_enemyStatsPanel.Open(enemy);
             }
         }
 
-        private bool _canCallNextEnemy;
+        private bool _canCallNextEnemy = false;
 
         private float _nextShipCooldown = NextShipMaxCooldown;
         private float _nextPlayerShipCooldown = NextShipMaxCooldown;

@@ -19,6 +19,7 @@ using Combat.Component.View;
 using Combat.Unit;
 using Constructor;
 using GameDatabase.Enums;
+using Gui.Combat;
 using UnityEngine;
 
 namespace Combat.Domain
@@ -40,8 +41,9 @@ namespace Combat.Domain
                     return ShipStatus.Ready;
                 if (ShipUnit.State == UnitState.Destroyed)
                     return ShipStatus.Destroyed;
-                
-                return ShipStatus.Active;
+
+                //return ShipStatus.Active;
+                return ShipStatus.Ready;
             }
         }
 
@@ -63,7 +65,7 @@ namespace Combat.Domain
         }
 
         public UnitSide Side { get { return _unitSide; } }
-
+        public void ChangeSide(UnitSide NewSide) { _unitSide = NewSide; }
         public void Create(Factory.ShipFactory factory, IControllerFactory controllerFactory, Vector2 position)
         {
             if (Status != ShipStatus.Ready)
@@ -93,7 +95,7 @@ namespace Combat.Domain
             ShipUnit = new DeadShip();
         }
 
-        private readonly UnitSide _unitSide;
+        private UnitSide _unitSide;
         private readonly Constructor.Ships.IShip _shipData;
         private readonly IShipSpecification _shipSpec;
 
@@ -118,11 +120,19 @@ namespace Combat.Domain
             public IShipSystems Systems { get { return null; } }
             public IShipEffects Effects { get { return null; } }
             public IShipSpecification Specification { get { return null; } }
+            public IOrder Order { get { return null; } }
+            public MapIcon MapIcon { get { return null; } }
+            public bool ControllerChangeToAi { get { return false; } }
+            public bool ControllerChangeToPlayer { get { return false; } }
             public void Dispose() { }
             public void Affect(Impact impact) { }
             public void AddPlatform(IWeaponPlatform platform) { }
             public void AddSystem(ISystem system) { }
             public void AddEffect(IShipEffect shipEffect) { }
+            public void AddMapIcon(MapIcon mapIcon) { }
+            public void ChangeControllerToAi() { }
+            public void ChangeControllerToPlayer() { }
+            public void RemoveControllerChangingMark() { }
         }
     }
 }
