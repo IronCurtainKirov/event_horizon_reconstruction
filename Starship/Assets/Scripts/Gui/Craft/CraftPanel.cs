@@ -6,7 +6,6 @@ using GameServices.Gui;
 using GameServices.Player;
 using GameServices.Random;
 using GameServices.Research;
-using ModestTree;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -39,9 +38,7 @@ namespace Gui.Craft
 
         public void Initialize(ITechnology tech)
         {
-            if (_itemQuality != CraftItemQuality.Common && (tech is SatelliteTechnology ||
-                                                            (tech is ComponentTechnology ct &&
-                                                             ct.Component.PossibleModifications.IsEmpty())))
+            if (_itemQuality != CraftItemQuality.Common && tech is SatelliteTechnology)
             {
                 Cleanup();
                 _notAvailablePanel.gameObject.SetActive(true);
