@@ -10,6 +10,7 @@ namespace Economy
         Stars,
         Tokens,
         Snowflakes,
+        Custom,
     }
 
     public static class CurrencyExtensions

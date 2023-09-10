@@ -39,7 +39,8 @@ namespace GameDatabase
 		IEnumerable<LootModel> LootList { get; }
 		IEnumerable<QuestModel> QuestList { get; }
 		IEnumerable<QuestItem> QuestItemList { get; }
-		IEnumerable<Ammunition> AmmunitionList { get; }
+        IEnumerable<Currency> CurrencyList {  get; }
+        IEnumerable<Ammunition> AmmunitionList { get; }
 		IEnumerable<BulletPrefab> BulletPrefabList { get; }
 		IEnumerable<VisualEffect> VisualEffectList { get; }
 		IEnumerable<Weapon> WeaponList { get; }
@@ -62,7 +63,8 @@ namespace GameDatabase
 		LootModel GetLoot(ItemId<LootModel> id);
 		QuestModel GetQuest(ItemId<QuestModel> id);
 		QuestItem GetQuestItem(ItemId<QuestItem> id);
-		Ammunition GetAmmunition(ItemId<Ammunition> id);
+		Currency GetCurrency(ItemId<Currency> id);
+        Ammunition GetAmmunition(ItemId<Ammunition> id);
 		BulletPrefab GetBulletPrefab(ItemId<BulletPrefab> id);
 		VisualEffect GetVisualEffect(ItemId<VisualEffect> id);
 		Weapon GetWeapon(ItemId<Weapon> id);
@@ -97,7 +99,8 @@ namespace GameDatabase
 		public IEnumerable<LootModel> LootList => _lootMap.Values;
 		public IEnumerable<QuestModel> QuestList => _questMap.Values;
 		public IEnumerable<QuestItem> QuestItemList => _questItemMap.Values;
-		public IEnumerable<Ammunition> AmmunitionList => _ammunitionMap.Values;
+        public IEnumerable<Currency> CurrencyList => _currencyMap.Values;
+        public IEnumerable<Ammunition> AmmunitionList => _ammunitionMap.Values;
 		public IEnumerable<BulletPrefab> BulletPrefabList => _bulletPrefabMap.Values;
 		public IEnumerable<VisualEffect> VisualEffectList => _visualEffectMap.Values;
 		public IEnumerable<Weapon> WeaponList => _weaponMap.Values;
@@ -120,7 +123,8 @@ namespace GameDatabase
 		public LootModel GetLoot(ItemId<LootModel> id) { return (_lootMap.TryGetValue(id.Value, out var item)) ? item : LootModel.DefaultValue; }
 		public QuestModel GetQuest(ItemId<QuestModel> id) { return (_questMap.TryGetValue(id.Value, out var item)) ? item : QuestModel.DefaultValue; }
 		public QuestItem GetQuestItem(ItemId<QuestItem> id) { return (_questItemMap.TryGetValue(id.Value, out var item)) ? item : QuestItem.DefaultValue; }
-		public Ammunition GetAmmunition(ItemId<Ammunition> id) { return (_ammunitionMap.TryGetValue(id.Value, out var item)) ? item : Ammunition.DefaultValue; }
+        public Currency GetCurrency(ItemId<Currency> id) { return (_currencyMap.TryGetValue(id.Value, out var item)) ? item : Currency.DefaultValue; }
+        public Ammunition GetAmmunition(ItemId<Ammunition> id) { return (_ammunitionMap.TryGetValue(id.Value, out var item)) ? item : Ammunition.DefaultValue; }
 		public BulletPrefab GetBulletPrefab(ItemId<BulletPrefab> id) { return (_bulletPrefabMap.TryGetValue(id.Value, out var item)) ? item : BulletPrefab.DefaultValue; }
 		public VisualEffect GetVisualEffect(ItemId<VisualEffect> id) { return (_visualEffectMap.TryGetValue(id.Value, out var item)) ? item : VisualEffect.DefaultValue; }
 		public Weapon GetWeapon(ItemId<Weapon> id) { return (_weaponMap.TryGetValue(id.Value, out var item)) ? item : Weapon.DefaultValue; }
@@ -149,7 +153,8 @@ namespace GameDatabase
 			_lootMap.Clear();
 			_questMap.Clear();
 			_questItemMap.Clear();
-			_ammunitionMap.Clear();
+            _currencyMap.Clear();
+            _ammunitionMap.Clear();
 			_bulletPrefabMap.Clear();
 			_visualEffectMap.Clear();
 			_weaponMap.Clear();
@@ -182,7 +187,8 @@ namespace GameDatabase
 		private readonly Dictionary<int, LootModel> _lootMap = new Dictionary<int, LootModel>();
 		private readonly Dictionary<int, QuestModel> _questMap = new Dictionary<int, QuestModel>();
 		private readonly Dictionary<int, QuestItem> _questItemMap = new Dictionary<int, QuestItem>();
-		private readonly Dictionary<int, Ammunition> _ammunitionMap = new Dictionary<int, Ammunition>();
+        private readonly Dictionary<int, Currency> _currencyMap = new Dictionary<int, Currency>();
+        private readonly Dictionary<int, Ammunition> _ammunitionMap = new Dictionary<int, Ammunition>();
 		private readonly Dictionary<int, BulletPrefab> _bulletPrefabMap = new Dictionary<int, BulletPrefab>();
 		private readonly Dictionary<int, VisualEffect> _visualEffectMap = new Dictionary<int, VisualEffect>();
 		private readonly Dictionary<int, Weapon> _weaponMap = new Dictionary<int, Weapon>();
@@ -261,7 +267,10 @@ namespace GameDatabase
 				foreach (var item in _content.QuestItemList)
 					if (!item.Disabled && !_database._questItemMap.ContainsKey(item.Id))
 						QuestItem.Create(item, this);
-				foreach (var item in _content.AmmunitionList)
+                foreach (var item in _content.CurrencyList)
+                    if (!item.Disabled && !_database._currencyMap.ContainsKey(item.Id))
+                        Currency.Create(item, this);
+                foreach (var item in _content.AmmunitionList)
 					if (!item.Disabled && !_database._ammunitionMap.ContainsKey(item.Id))
 						Ammunition.Create(item, this);
 				foreach (var item in _content.BulletPrefabList)
@@ -475,8 +484,18 @@ namespace GameDatabase
 				var value = QuestItem.DefaultValue;
 				if (notNull && value == null) throw new DatabaseException("Data not found " + id);
                 return value;
-			}
-			public Ammunition GetAmmunition(ItemId<Ammunition> id, bool notNull = false)
+            }
+            public Currency GetCurrency(ItemId<Currency> id, bool notNull = false)
+            {
+                if (_database._currencyMap.TryGetValue(id.Value, out var item)) return item;
+                var serializable = _content.GetCurrency(id.Value);
+                if (serializable != null && !serializable.Disabled) return Currency.Create(serializable, this);
+
+                var value = Currency.DefaultValue;
+                if (notNull && value == null) throw new DatabaseException("Data not found " + id);
+                return value;
+            }
+            public Ammunition GetAmmunition(ItemId<Ammunition> id, bool notNull = false)
 			{
 				if (_database._ammunitionMap.TryGetValue(id.Value, out var item)) return item;
                 var serializable = _content.GetAmmunition(id.Value);
@@ -536,7 +555,8 @@ namespace GameDatabase
 			public void AddLoot(int id, LootModel item) { _database._lootMap.Add(id, item); }
 			public void AddQuest(int id, QuestModel item) { _database._questMap.Add(id, item); }
 			public void AddQuestItem(int id, QuestItem item) { _database._questItemMap.Add(id, item); }
-			public void AddAmmunition(int id, Ammunition item) { _database._ammunitionMap.Add(id, item); }
+            public void AddCurrency(int id, Currency item) { _database._currencyMap.Add(id, item); }
+            public void AddAmmunition(int id, Ammunition item) { _database._ammunitionMap.Add(id, item); }
 			public void AddBulletPrefab(int id, BulletPrefab item) { _database._bulletPrefabMap.Add(id, item); }
 			public void AddVisualEffect(int id, VisualEffect item) { _database._visualEffectMap.Add(id, item); }
 			public void AddWeapon(int id, Weapon item) { _database._weaponMap.Add(id, item); }

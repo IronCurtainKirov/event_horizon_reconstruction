@@ -9,6 +9,7 @@ using GameDatabase;
 using GameDatabase.DataModel;
 using GameDatabase.Extensions;
 using Zenject;
+using Currency = Economy.Currency;
 
 namespace Domain.Quests
 {

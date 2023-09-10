@@ -2,6 +2,7 @@
 using Economy.ItemType;
 using Economy.Products;
 using GameServices.Player;
+using UnityEngine;
 
 namespace Economy
 {
@@ -11,9 +12,24 @@ namespace Economy
         {
             if (amount < 0)
                 throw new ArgumentException("negative price: " + amount + " " + currency);
+            if (currency == Currency.Custom)
+                throw new ArgumentException("no custom currency specified");
 
             _amount = amount;
             _currency = currency;
+            _customCurrency = null;
+            _id = 0;
+        }
+
+        public Price(long amount, GameDatabase.DataModel.Currency currency)
+        {
+            if (amount < 0)
+                throw new ArgumentException("negative price: " + amount + " " + currency.Name);
+
+            _amount = amount;
+            _currency = Currency.Custom;
+            _customCurrency = currency;
+            _id = currency.Id.Value;
         }
 
         public static Price Common(long amount)
@@ -43,21 +59,21 @@ namespace Economy
 
         public static Price operator *(Price price, int multiplier)
         {
-            return new Price(price._amount*multiplier, price._currency);
+            return price._currency == Currency.Custom ? new Price(price._amount * multiplier, price._customCurrency) : new Price(price._amount*multiplier, price._currency);
         }
 
         public static Price operator *(Price price, float multiplier)
         {
             var value = (long)Math.Ceiling((double) price._amount * multiplier);
-            return new Price(value, price._currency);
+            return price._currency == Currency.Custom ? new Price(value, price._customCurrency) : new Price(value, price._currency);
         }
 
         public static Price operator /(Price price, int multiplier)
         {
             if (price._amount <= 0)
-                return new Price(0, price._currency);
+                return price._currency == Currency.Custom ? new Price(0, price._customCurrency) : new Price(0, price._currency);
 
-            return new Price(Math.Max(price._amount / multiplier, 1), price._currency);
+            return price._currency == Currency.Custom ? new Price(Math.Max(price._amount / multiplier, 1), price._customCurrency) : new Price(Math.Max(price._amount / multiplier, 1), price._currency);
         }
 
         public override string ToString()
@@ -67,6 +83,7 @@ namespace Economy
 
         public int Amount { get { return Clamp(_amount); } }
         public Currency Currency { get { return _currency; } }
+        public GameDatabase.DataModel.Currency CustomCurrency { get { return _customCurrency; } }
 
         public int GetMaxItemsToWithdraw(PlayerResources playerResources)
         {
@@ -80,6 +97,8 @@ namespace Economy
                     return _amount > 0 ? (int)(playerResources.Tokens / _amount) : int.MaxValue;
                 case Currency.Snowflakes:
                     return _amount > 0 ? (int)(playerResources.Snowflakes / _amount) : int.MaxValue;
+                case Currency.Custom:
+                    return _amount > 0 ? (int)(playerResources.Currencies[_id] / _amount) : int.MaxValue;
                 case Currency.None:
                     return 1;
                 default:
@@ -92,7 +111,12 @@ namespace Economy
         public void Withdraw(PlayerResources playerResources)
         {
             if (!TryWithdraw(playerResources))
-                throw new InvalidOperationException("Price.Withdraw: not enough money - " + Amount + " " + Currency);
+            {
+                if (Currency == Currency.Custom)
+                    throw new InvalidOperationException("Price.Withdraw: not enough money - " + Amount + " " + Currency);
+                else
+                    throw new InvalidOperationException("Price.Withdraw: not enough money - " + Amount + " " + CustomCurrency.Name);
+            }
         }
 
         public bool TryWithdraw(PlayerResources playerResources)
@@ -123,6 +147,12 @@ namespace Economy
                         return false;
                     playerResources.Snowflakes = Clamp(snowflakes - _amount);
                     return true;
+                case Currency.Custom:
+                    var value = playerResources.Currencies[_id];
+                    if (value < _amount)
+                        return false;
+                    playerResources.Currencies[_id] = Clamp(value - _amount);
+                    return true;
                 case Currency.None:
                     return true;
                 default:
@@ -144,7 +174,10 @@ namespace Economy
                     playerResources.Tokens = Clamp(playerResources.Tokens + _amount);
                     break;
                 case Currency.Snowflakes:
-                    playerResources.Snowflakes = Clamp(playerResources.Snowflakes +_amount);
+                    playerResources.Snowflakes = Clamp(playerResources.Snowflakes + _amount);
+                    break;
+                case Currency.Custom:
+                    playerResources.Currencies[_id] = Clamp(playerResources.Currencies[_id] + _amount);
                     break;
                 case Currency.None:
                 default:
@@ -199,5 +232,7 @@ namespace Economy
 
         private readonly ObscuredLong _amount;
         private readonly Currency _currency;
+        private readonly GameDatabase.DataModel.Currency _customCurrency;
+        private readonly int _id;
     }
 }

@@ -11,6 +11,7 @@ using Services.Reources;
 using UnityEngine.UI;
 using ViewModel.Common;
 using Zenject;
+using Currency = Economy.Currency;
 
 namespace Gui.ShipService
 {

@@ -41,6 +41,7 @@ public enum EventType
     StarsValueChanged, // int
     TokensValueChanged, // int
     SpecialResourcesChanged,
+    CurrenciesChanged, // int id, int value
 
     SupplyShipActivated, // bool
 

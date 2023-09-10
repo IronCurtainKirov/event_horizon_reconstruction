@@ -20,6 +20,7 @@ using GameModel;
 using GameServices.Player;
 using Zenject;
 using Component = GameDatabase.DataModel.Component;
+using Currency = Economy.Currency;
 
 namespace GameServices.Economy
 {

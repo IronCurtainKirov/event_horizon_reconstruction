@@ -269,6 +269,19 @@ namespace GameDatabase.Storage
                 if (!_allowDuplicates)
                     throw new DatabaseException("Duplicate QuestItem ID - " + item.Id + " (" + name + ")");
             }
+            else if (type == ItemType.Currency)
+            {
+                if (!_currencyMap.ContainsKey(item.Id))
+                {
+                    var data = _serializer.FromJson<CurrencySerializable>(content);
+                    data.FileName = name;
+                    _currencyMap.Add(data.Id, data);
+                    return;
+                }
+
+                if (!_allowDuplicates)
+                    throw new DatabaseException("Duplicate Currency ID - " + item.Id + " (" + name + ")");
+            }
             else if (type == ItemType.Ammunition)
             {
 			    if (!_ammunitionMap.ContainsKey(item.Id))
@@ -417,7 +430,8 @@ namespace GameDatabase.Storage
 		public IEnumerable<LootSerializable> LootList => _lootMap.Values;
 		public IEnumerable<QuestSerializable> QuestList => _questMap.Values;
 		public IEnumerable<QuestItemSerializable> QuestItemList => _questItemMap.Values;
-		public IEnumerable<AmmunitionSerializable> AmmunitionList => _ammunitionMap.Values;
+        public IEnumerable<CurrencySerializable> CurrencyList => _currencyMap.Values;
+        public IEnumerable<AmmunitionSerializable> AmmunitionList => _ammunitionMap.Values;
 		public IEnumerable<BulletPrefabSerializable> BulletPrefabList => _bulletPrefabMap.Values;
 		public IEnumerable<VisualEffectSerializable> VisualEffectList => _visualEffectMap.Values;
 		public IEnumerable<WeaponSerializable> WeaponList => _weaponMap.Values;
@@ -440,7 +454,8 @@ namespace GameDatabase.Storage
 		public LootSerializable GetLoot(int id) { return _lootMap.TryGetValue(id, out var item) ? item : null; }
 		public QuestSerializable GetQuest(int id) { return _questMap.TryGetValue(id, out var item) ? item : null; }
 		public QuestItemSerializable GetQuestItem(int id) { return _questItemMap.TryGetValue(id, out var item) ? item : null; }
-		public AmmunitionSerializable GetAmmunition(int id) { return _ammunitionMap.TryGetValue(id, out var item) ? item : null; }
+        public CurrencySerializable GetCurrency(int id) { return _currencyMap.TryGetValue(id, out var item) ? item : null; }
+        public AmmunitionSerializable GetAmmunition(int id) { return _ammunitionMap.TryGetValue(id, out var item) ? item : null; }
 		public BulletPrefabSerializable GetBulletPrefab(int id) { return _bulletPrefabMap.TryGetValue(id, out var item) ? item : null; }
 		public VisualEffectSerializable GetVisualEffect(int id) { return _visualEffectMap.TryGetValue(id, out var item) ? item : null; }
 		public WeaponSerializable GetWeapon(int id) { return _weaponMap.TryGetValue(id, out var item) ? item : null; }
@@ -470,7 +485,8 @@ namespace GameDatabase.Storage
 		private readonly Dictionary<int, LootSerializable> _lootMap = new Dictionary<int, LootSerializable>();
 		private readonly Dictionary<int, QuestSerializable> _questMap = new Dictionary<int, QuestSerializable>();
 		private readonly Dictionary<int, QuestItemSerializable> _questItemMap = new Dictionary<int, QuestItemSerializable>();
-		private readonly Dictionary<int, AmmunitionSerializable> _ammunitionMap = new Dictionary<int, AmmunitionSerializable>();
+        private readonly Dictionary<int, CurrencySerializable> _currencyMap = new Dictionary<int, CurrencySerializable>();
+        private readonly Dictionary<int, AmmunitionSerializable> _ammunitionMap = new Dictionary<int, AmmunitionSerializable>();
 		private readonly Dictionary<int, BulletPrefabSerializable> _bulletPrefabMap = new Dictionary<int, BulletPrefabSerializable>();
 		private readonly Dictionary<int, VisualEffectSerializable> _visualEffectMap = new Dictionary<int, VisualEffectSerializable>();
 		private readonly Dictionary<int, WeaponSerializable> _weaponMap = new Dictionary<int, WeaponSerializable>();

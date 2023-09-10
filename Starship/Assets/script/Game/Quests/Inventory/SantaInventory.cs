@@ -11,6 +11,7 @@ using GameDatabase.Extensions;
 using GameDatabase.Model;
 using GameServices.Random;
 using GameServices.Research;
+using Currency = Economy.Currency;
 
 namespace GameModel
 {

@@ -29,6 +29,7 @@ namespace Services.Messenger
             StarsValueChangedSignal starsValueChangedSignal,
             TokensValueChangedSignal tokensValueChangedSignal,
             ResourcesChangedSignal resourcesChangedSignal,
+            CurrenciesChangedSignal currenciesChangedSignal,
             CloudSavedGamesReceivedSignal cloudSavedGamesReceivedSignal,
             CloudStorageStatusChangedSignal cloudStorageStatusChangedSignal,
             MultiplayerStatusChangedSignal multiplayerStatusChangedSignal,
@@ -87,6 +88,8 @@ namespace Services.Messenger
             _playerShipChangedSignal.Event += OnPlayerShipChanged;
             _resourcesChangedSignal = resourcesChangedSignal;
             _resourcesChangedSignal.Event += OnResourcesChanged;
+            _currenciesChangedSignal = currenciesChangedSignal;
+            _currenciesChangedSignal.Event += OnCurrenciesChanged;
             _starContentChangedSignal = starContentChangedSignal;
             _starContentChangedSignal.Event += OnStarContentChanged;
             _questListChangedSignal = questListChangedSignal;
@@ -140,6 +143,11 @@ namespace Services.Messenger
         private void OnResourcesChanged()
         {
             _messenger.Broadcast(EventType.SpecialResourcesChanged);
+        }
+
+        private void OnCurrenciesChanged(int id, int value)
+        {
+            _messenger.Broadcast<int, int>(EventType.CurrenciesChanged, id, value);
         }
 
         private void OnCloudSaveGamesReceived()
@@ -237,6 +245,7 @@ namespace Services.Messenger
         private readonly ShipDestroyedSignal _shipDestroyedSignal;
         private readonly PlayerShipChangedSignal _playerShipChangedSignal;
         private readonly ResourcesChangedSignal _resourcesChangedSignal;
+        private readonly CurrenciesChangedSignal _currenciesChangedSignal;
         private readonly StarContentChangedSignal _starContentChangedSignal;
         private readonly QuestListChangedSignal _questListChangedSignal;
         private readonly BaseCapturedSignal _baseCapturedSignal;

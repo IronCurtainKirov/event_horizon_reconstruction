@@ -15,6 +15,7 @@ namespace Session
         [Inject] private readonly NewStarExploredSignal.Trigger _newStarExploredTrigger;
         [Inject] private readonly PlayerSkillsResetSignal.Trigger _playerSkillResetTrigger;
         [Inject] private readonly ResourcesChangedSignal.Trigger _specialResourcesChangedTrigger;
+        [Inject] private readonly CurrenciesChangedSignal.Trigger _currenciesChangedTrigger;
 
         public BossData CreateBossData(byte[] buffer)
         {
@@ -59,7 +60,7 @@ namespace Session
         public ResourcesData CreateResourcesData(byte[] buffer)
         {
             return new ResourcesData(_fuelValueChangedTrigger, _moneyValueChangedTrigger,
-                _starsValueChangedTrigger, _tokensValueChangedTrigger, _specialResourcesChangedTrigger, buffer);
+                _starsValueChangedTrigger, _tokensValueChangedTrigger, _specialResourcesChangedTrigger, _currenciesChangedTrigger, buffer);
         }
 
         public ShopData CreateShopData(byte[] buffer)

@@ -51,6 +51,11 @@ namespace Economy.ItemType
             }
         }
 
+        public IItemType CreateCurrencyItem(GameDatabase.DataModel.Currency currency)
+        {
+            return _container.Instantiate<CurrencyItem>(new object[] { currency });
+        }
+
         public IItemType CreateArtifactItem(QuestItem questItem)
         {
             return _container.Instantiate<ArtifactItem>(new object[] { questItem });

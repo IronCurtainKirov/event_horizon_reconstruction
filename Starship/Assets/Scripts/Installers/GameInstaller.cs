@@ -172,6 +172,8 @@ namespace Installers
             Container.BindTrigger<TokensValueChangedSignal.Trigger>();
             Container.BindSignal<ResourcesChangedSignal>();
             Container.BindTrigger<ResourcesChangedSignal.Trigger>();
+            Container.BindSignal<CurrenciesChangedSignal>();
+            Container.BindTrigger<CurrenciesChangedSignal.Trigger>();
         }
 
         private void BindStateMachine()

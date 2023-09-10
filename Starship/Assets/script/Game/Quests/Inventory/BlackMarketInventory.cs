@@ -13,6 +13,7 @@ using GameDatabase.Extensions;
 using GameServices.Player;
 using GameServices.Random;
 using Market = Model.Regulations.Market;
+using Currency = Economy.Currency;
 
 namespace GameModel
 {

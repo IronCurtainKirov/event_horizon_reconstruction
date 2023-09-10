@@ -3,6 +3,7 @@ using System.Linq;
 using GameDatabase.DataModel;
 using GameDatabase.Model;
 using Session;
+using Utils;
 using Zenject;
 
 namespace GameServices.Player
@@ -51,6 +52,11 @@ namespace GameServices.Player
             set { _session.Resources.Fuel = Clamp(value, _skills.MainFuelCapacity); }
         }
 
+        public IGameItemCollection<int> Currencies
+        {
+            get { return _session.Resources.Currencies; }
+        }
+
         public IEnumerable<ItemId<QuestItem>> Resources { get { return _session.Resources.Resources.Items.Select(item => new ItemId<QuestItem>(item.Key)); } }
 
         public int GetResource(ItemId<QuestItem> id)
@@ -66,6 +72,20 @@ namespace GameServices.Player
         public void RemoveResource(ItemId<QuestItem> id, int amount)
         {
             _session.Resources.Resources.Remove(id.Value, Clamp(amount));
+        }
+        public int GetCurrency(ItemId<Currency> id)
+        {
+            return _session.Resources.Currencies.GetQuantity(id.Value);
+        }
+
+        public void AddCurrency(ItemId<Currency> id, int amount)
+        {
+            _session.Resources.Currencies.Add(id.Value, Clamp(amount));
+        }
+
+        public void RemoveCurrency(ItemId<Currency> id, int amount)
+        {
+            _session.Resources.Currencies.Remove(id.Value, Clamp(amount));
         }
 
         public bool TryConsumeFuel(int amount)

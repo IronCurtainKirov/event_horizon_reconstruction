@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Utils
 {
@@ -25,6 +26,7 @@ namespace Utils
     public class GameItemCollection<T> : IGameItemCollection<T>
     {
         public event Action CollectionChangedEvent;
+        public event Action<T, int> AccurateCollectionChangedEvent;
 
         public void Assign(IEnumerable<KeyValuePair<T, int>> items)
         {
@@ -60,6 +62,7 @@ namespace Utils
             {
                 _collection[key] = value;
                 IsDirty = true;
+                AccurateCollectionChangedEvent?.Invoke(key, value);
             }
         }
 
@@ -72,6 +75,7 @@ namespace Utils
             _collection[item] = value + amount;
 
             IsDirty = true;
+            AccurateCollectionChangedEvent?.Invoke(item, value + amount);
         }
 
         public int Remove(T item, int amount = 1)
@@ -87,6 +91,7 @@ namespace Utils
                 _collection[item] = quantity;
 
             IsDirty = true;
+            AccurateCollectionChangedEvent?.Invoke(item, quantity <= 0 ? 0 : quantity);
 
             return quantity >= 0 ? amount : amount + quantity;
         }
@@ -96,8 +101,11 @@ namespace Utils
             if (!_collection.Any())
                 return;
 
+            var keys = _collection.Keys;
             _collection.Clear();
             IsDirty = true;
+            foreach (var key in keys)
+                AccurateCollectionChangedEvent?.Invoke(key, 0);
         }
 
         public int GetQuantity(T item)

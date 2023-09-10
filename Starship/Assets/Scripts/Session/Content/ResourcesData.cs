@@ -16,6 +16,7 @@ namespace Session.Content
             StarsValueChangedSignal.Trigger starsValueChangedTrigger, 
             TokensValueChangedSignal.Trigger tokensValueChangedTrigger,
             ResourcesChangedSignal.Trigger specialResourcesChangedTrigger,
+			CurrenciesChangedSignal.Trigger currenciesChangedTrigger,
             byte[] buffer = null)
         {
             _moneyValueChangedTrigger = moneyValueChangedTrigger;
@@ -23,6 +24,7 @@ namespace Session.Content
             _starsValueChangedTrigger = starsValueChangedTrigger;
             _tokensValueChangedTrigger = tokensValueChangedTrigger;
             _specialResourcesChangedTrigger = specialResourcesChangedTrigger;
+            _currenciesChangedTrigger = currenciesChangedTrigger;
 
             IsChanged = true;
 			_money = 100;
@@ -34,13 +36,14 @@ namespace Session.Content
                 Deserialize(buffer);
 
             _resources.CollectionChangedEvent += OnCollectionChanged;
+			_currencies.AccurateCollectionChangedEvent += OnCurrenciesChanged;
         }
 
         public string FileName { get { return Name; } }
         public const string Name = "resources";
 
         public bool IsChanged { get; private set; }
-		public static int CurrentVersion { get { return 5; } }
+		public static int CurrentVersion { get { return 6; } }
 
 		public int Money 
 		{
@@ -100,7 +103,10 @@ namespace Session.Content
 
 	    public IGameItemCollection<int> Resources { get { return _resources; } }
 
-		public IEnumerable<byte> Serialize()
+		public IGameItemCollection<int> Currencies { get { return _currencies; } }
+
+
+        public IEnumerable<byte> Serialize()
 		{
 			IsChanged = false;
 			
@@ -117,8 +123,10 @@ namespace Session.Content
                 yield return value;
 		    foreach (var value in Helpers.Serialize(_resources))
 		        yield return value;
+            foreach (var value in Helpers.Serialize(_currencies))
+                yield return value;
 
-		    foreach (var value in Helpers.Serialize(0)) // reserved
+            foreach (var value in Helpers.Serialize(0)) // reserved
 		        yield return value;
 		    foreach (var value in Helpers.Serialize(0))
 		        yield return value;
@@ -146,9 +154,10 @@ namespace Session.Content
 			_stars = Helpers.DeserializeInt(buffer, ref index);
             _tokens = Helpers.DeserializeInt(buffer, ref index);
 		    _resources.Assign(Helpers.DeserializeDictionary(buffer, ref index));
+            _currencies.Assign(Helpers.DeserializeDictionary(buffer, ref index));
 
 #if UNITY_EDITOR
-			OptimizedDebug.Log("ResourcesData: money = " + _money);
+            OptimizedDebug.Log("ResourcesData: money = " + _money);
 			OptimizedDebug.Log("ResourcesData: fuel = " + _fuel);
 			OptimizedDebug.Log("ResourcesData: stars = " + _stars);
             OptimizedDebug.Log("ResourcesData: tokens = " + _tokens);
@@ -181,7 +190,13 @@ namespace Session.Content
 		    {
 		        data = Upgrade_4_5(data).ToArray();
 		        version = 5;
-		    }
+            }
+
+            if (version == 5)
+            {
+                data = Upgrade_5_6(data).ToArray();
+                version = 6;
+            }
 
             return version == CurrentVersion;
 		}
@@ -193,7 +208,7 @@ namespace Session.Content
 			Helpers.DeserializeInt(buffer, ref index);
 			var version = 2;
 			foreach (var value in Helpers.Serialize(version))
-				yield return value;				
+				yield return value;
 
 			for (int i = index; i < buffer.Length; ++i)
 				yield return buffer[i];
@@ -209,7 +224,7 @@ namespace Session.Content
 			Helpers.DeserializeInt(buffer, ref index);
 			var version = 3;
 			foreach (var value in Helpers.Serialize(version))
-				yield return value;				
+				yield return value;
 
 			var money = Helpers.DeserializeInt(buffer, ref index);
 			var fuel = Helpers.DeserializeInt(buffer, ref index);
@@ -224,11 +239,11 @@ namespace Session.Content
 			}
 
 			foreach (var value in Helpers.Serialize(money))
-				yield return value;				
+				yield return value;
 			foreach (var value in Helpers.Serialize(fuel))
 				yield return value;
 			foreach (var value in Helpers.Serialize(stars))
-				yield return value;				
+				yield return value;
 
 			for (int i = index; i < buffer.Length; ++i)
 				yield return buffer[i];
@@ -308,11 +323,53 @@ namespace Session.Content
 	            yield return value;
         }
 
+        private static IEnumerable<byte> Upgrade_5_6(byte[] buffer)
+        {
+            int index = 0;
+
+            Helpers.DeserializeInt(buffer, ref index); // version
+            foreach (var value in Helpers.Serialize(6))
+                yield return value;
+
+            var money = Helpers.DeserializeInt(buffer, ref index);
+            var fuel = Helpers.DeserializeInt(buffer, ref index);
+            var stars = Helpers.DeserializeInt(buffer, ref index);
+            var tokens = Helpers.DeserializeInt(buffer, ref index);
+            var resources = Helpers.DeserializeDictionary(buffer, ref index);
+
+            foreach (var value in Helpers.Serialize(money))
+                yield return value;
+            foreach (var value in Helpers.Serialize(fuel))
+                yield return value;
+            foreach (var value in Helpers.Serialize(stars))
+                yield return value;
+            foreach (var value in Helpers.Serialize(tokens))
+                yield return value;
+            foreach (var value in Helpers.Serialize(resources))
+                yield return value;
+            foreach (var value in Helpers.Serialize(0)) // currenciesCount
+                yield return value;
+			foreach (var value in Helpers.Serialize(0)) // reserved
+                yield return value;
+            foreach (var value in Helpers.Serialize(0)) // reserved
+                yield return value;
+            foreach (var value in Helpers.Serialize(0)) // reserved
+                yield return value;
+            foreach (var value in Helpers.Serialize(0)) // reserved
+                yield return value;
+        }
+
         private void OnCollectionChanged()
 	    {
 	        IsChanged = true;
 	        _specialResourcesChangedTrigger.Fire();
 	    }
+
+		private void OnCurrenciesChanged(int id, int amount)
+        {
+            IsChanged = true;
+            _currenciesChangedTrigger.Fire(id, amount);
+        }
 
         private ObscuredInt _money;
 		private ObscuredInt _fuel;
@@ -320,12 +377,14 @@ namespace Session.Content
         private ObscuredInt _tokens;
 		private readonly Dictionary<int, int> _commonResources = new Dictionary<int, int>();
 	    private readonly GameItemCollection<int> _resources = new GameItemCollection<int>();
+		private readonly GameItemCollection<int> _currencies = new GameItemCollection<int>();
 
         private readonly FuelValueChangedSignal.Trigger _fuelValueChangedTrigger;
         private readonly MoneyValueChangedSignal.Trigger _moneyValueChangedTrigger;
         private readonly StarsValueChangedSignal.Trigger _starsValueChangedTrigger;
         private readonly TokensValueChangedSignal.Trigger _tokensValueChangedTrigger;
 	    private readonly ResourcesChangedSignal.Trigger _specialResourcesChangedTrigger;
+		private readonly CurrenciesChangedSignal.Trigger _currenciesChangedTrigger;
 
         private static readonly int _mask = new System.Random((int)DateTime.Now.Ticks).Next();
 	}
@@ -335,4 +394,5 @@ namespace Session.Content
     public class StarsValueChangedSignal : SmartWeakSignal { public class Trigger : TriggerBase { } }
     public class TokensValueChangedSignal : SmartWeakSignal<int> { public class Trigger : TriggerBase { } }
     public class ResourcesChangedSignal : SmartWeakSignal { public class Trigger : TriggerBase { } }
+    public class CurrenciesChangedSignal : SmartWeakSignal<int,int> { public class Trigger : TriggerBase { } }
 }
